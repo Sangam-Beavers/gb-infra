@@ -1,0 +1,11 @@
+image:
+  repository: harbor.sb.fisa/global_bridge/smoke-test
+  tag: "1"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+imagePullSecrets:
+  - name: harbor-dockercfg
+
+containerPort: 80
