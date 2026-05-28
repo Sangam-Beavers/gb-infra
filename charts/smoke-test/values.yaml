@@ -1,6 +1,6 @@
 image:
   repository: harbor.sb.fisa/global_bridge/smoke-test
-  tag: "1"
+  tag: "19"
   pullPolicy: IfNotPresent
 
 replicaCount: 1
