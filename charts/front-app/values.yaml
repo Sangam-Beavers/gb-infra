@@ -1,0 +1,40 @@
+image:
+  repository: harbor.sb.fisa/global_bridge/front-app
+  tag: "1"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: harbor-dockercfg
+
+replicaCount: 1
+
+containerPort: 80
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: cilium
+  host: app.dev.fisa
+  tls:
+    enabled: false  # 일단 평문, 나중에 cert-manager로 TLS 추가
+
+# 컨테이너에 주입될 환경변수 (docker-entrypoint.sh가 sed 치환에 사용)
+env:
+  SKIP_AUTH: "false"
+  OIDC_CLIENT_ID: "zT2Nkwd4Ui4hC26BYmsD6GywxmsTscruqtswkzq1"
+  OIDC_AUTHORIZE_ENDPOINT: "https://sso.sb.fisa/application/o/authorize/"
+  OIDC_TOKEN_ENDPOINT: "https://sso.sb.fisa/application/o/token/"
+  OIDC_REDIRECT_URI: "https://app.dev.fisa/auth/callback"
+  OIDC_END_SESSION_ENDPOINT: "https://sso.sb.fisa/application/o/gb-front/end-session/"
+  OIDC_POST_LOGOUT_REDIRECT_URI: "https://app.dev.fisa/login"
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
