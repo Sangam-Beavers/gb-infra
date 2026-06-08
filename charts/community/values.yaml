@@ -21,7 +21,7 @@ springProfilesActive: dev
 
 # 평범한 설정값 (ConfigMap으로 주입 — 비밀 아님)
 config:
-  authIssuerUri: "https://auth.sb.fisa/application/o/community/"    # TODO 확인
+  authIssuerUri: "https://sso.sb.fisa/application/o/gb-backend/"    # TODO 확인
   memberApiBaseUrl: "http://member.member-dev.svc.cluster.local:8081"  # TODO member 배포 시
   dbHost: "aurora-cluster-endpoint.dev.local"                       # TODO 확인
   dbPort: "3306"
