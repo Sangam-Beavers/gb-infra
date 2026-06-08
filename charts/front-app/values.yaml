@@ -1,6 +1,6 @@
 image:
   repository: harbor.sb.fisa/global_bridge/front-app
-  tag: "1"
+  tag: "9"
   pullPolicy: IfNotPresent
 
 imagePullSecrets:
