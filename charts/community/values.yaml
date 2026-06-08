@@ -23,7 +23,7 @@ springProfilesActive: dev
 config:
   authIssuerUri: "https://sso.sb.fisa/application/o/gb-backend/"    # TODO 확인
   memberApiBaseUrl: "http://member.member-dev.svc.cluster.local:8081"  # TODO member 배포 시
-  dbHost: "mysql.community-dev.svc.cluster.local"                       # TODO 확인
+  dbHost: "mysql.databases-dev.svc.cluster.local"                       # TODO 확인
   dbPort: "3306"
   dbName: "community"
   kafkaBootstrapServers: "kafka.kafka.svc.cluster.local:9092"       # TODO 확인
