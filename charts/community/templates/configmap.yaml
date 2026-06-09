@@ -8,6 +8,6 @@ data:
   # community → member-service 호출 base URL
   MEMBER_API_BASE_URL: {{ .Values.config.memberApiBaseUrl | quote }}
   # Aurora MySQL JDBC URL
-  SPRING_DATASOURCE_URL: "jdbc:mysql://{{ .Values.config.dbHost }}:{{ .Values.config.dbPort }}/{{ .Values.config.dbName }}"
+  SPRING_DATASOURCE_URL: "jdbc:mysql://{{ .Values.config.dbHost }}:{{ .Values.config.dbPort }}/{{ .Values.config.dbName }}?serverTimezone=UTC&characterEncoding=UTF-8"
   # Kafka 브로커
   SPRING_KAFKA_BOOTSTRAP_SERVERS: {{ .Values.config.kafkaBootstrapServers | quote }}
