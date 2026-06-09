@@ -18,8 +18,11 @@ ingress:
   enabled: true
   className: cilium
   host: app.dev.fisa
+  annotations:
+    cert-manager.io/cluster-issuer: "sb-local-ca-issuer"
   tls:
-    enabled: false  # 일단 평문, 나중에 cert-manager로 TLS 추가
+    enabled: true
+    secretName: front-app-tls
 
 # 컨테이너에 주입될 환경변수 (docker-entrypoint.sh가 sed 치환에 사용)
 env:
