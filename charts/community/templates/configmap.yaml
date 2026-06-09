@@ -4,7 +4,7 @@ metadata:
   name: community-config
 data:
   # JWT 검증용 OIDC issuer (Authentik/Cognito)
-  AUTH_ISSUER_URI: {{ .Values.config.authIssuerUri | quote }}
+  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: {{ .Values.config.authIssuerUri | quote }}
   # community → member-service 호출 base URL
   MEMBER_API_BASE_URL: {{ .Values.config.memberApiBaseUrl | quote }}
   # Aurora MySQL JDBC URL
