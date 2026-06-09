@@ -22,7 +22,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: {{ .Values.service.containerPort }}  # 기존 .Values.service.port → containerPort로 변경
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: {{ .Values.springProfilesActive | quote }}
