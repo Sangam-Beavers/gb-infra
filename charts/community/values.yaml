@@ -13,7 +13,8 @@ imagePullSecrets:
 
 # Spring server.port = 8082
 service:
-  port: 8082
+  port: 8080          # 기존 8082 → 8080 (nginx.conf 접근 포트)
+  containerPort: 8082  # 추가 (실제 앱 포트)
   type: ClusterIP
 
 # 어느 환경에서 도는지 (Dockerfile 기본값 dev를 K8s에서도 dev로)
