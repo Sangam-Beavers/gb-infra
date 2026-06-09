@@ -5,6 +5,12 @@ metadata:
   name: front-app
   labels:
     app: front-app
+  {{- if .Values.ingress.annotations }}
+  annotations:
+    {{- range $key, $value := .Values.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   rules:
@@ -22,6 +28,6 @@ spec:
   tls:
   - hosts:
     - {{ .Values.ingress.host }}
-    secretName: front-app-tls
+    secretName: {{ .Values.ingress.tls.secretName }}
   {{- end }}
 {{- end }}
