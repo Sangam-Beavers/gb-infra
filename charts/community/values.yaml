@@ -34,4 +34,4 @@ externalSecret:
   refreshInterval: 1h
   storeName: vault-backend
   storeKind: ClusterSecretStore
-  vaultPath: cicd/community-service/dev   # Vault 안 경로 (Phase 3에 비밀값 넣을 위치)
+  vaultPath: "community-service/dev"    # Vault 안 경로 (Phase 3에 비밀값 넣을 위치)
