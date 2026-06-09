@@ -28,6 +28,7 @@ config:
   dbPort: "3306"
   dbName: "community_db"                      # community → community_db
   kafkaBootstrapServers: "kafka.kafka.svc.cluster.local:9092"       # TODO 확인
+  redisHost: "redis.gb-dev.svc.cluster.local"
 
 # Vault에서 가져올 비밀값 경로 (ExternalSecret 참조)
 externalSecret:
