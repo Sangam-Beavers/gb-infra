@@ -1,0 +1,32 @@
+# 컨테이너 이미지
+image:
+  repository: harbor.sb.fisa/global_bridge/wallet
+  tag: "1"
+  pullPolicy: IfNotPresent
+# Pod 개수
+replicaCount: 1
+# Harbor 사설 레지스트리 인증
+imagePullSecrets:
+  - name: harbor-dockercfg
+# Spring server.port = 8084
+service:
+  port: 8084
+  containerPort: 8084
+  type: ClusterIP
+# 어느 환경에서 도는지
+springProfilesActive: dev
+# 평범한 설정값 (ConfigMap으로 주입)
+config:
+  authIssuerUri: "https://sso.sb.fisa/application/o/gb-backend/"
+  memberApiBaseUrl: "http://member.gb-dev.svc.cluster.local:8081"  # TODO member 배포 후 확인
+  dbHost: "mysql-lb.gb-dev.svc.cluster.local"
+  dbPort: "3306"
+  dbName: "wallet_db"
+  redisHost: "redis.gb-dev.svc.cluster.local"
+  bankApiBaseUrl: "https://banks.aoimiu.com/"
+# Vault에서 가져올 비밀값 경로
+externalSecret:
+  refreshInterval: 1h
+  storeName: vault-backend
+  storeKind: ClusterSecretStore
+  vaultPath: "wallet-service/dev"
