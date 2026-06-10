@@ -6,6 +6,7 @@ data:
   SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: {{ .Values.config.authIssuerUri | quote }}
   SPRING_DATASOURCE_URL: "jdbc:mysql://{{ .Values.config.dbHost }}:{{ .Values.config.dbPort }}/{{ .Values.config.dbName }}?serverTimezone=UTC&characterEncoding=UTF-8"
   SPRING_DATA_REDIS_HOST: {{ .Values.config.redisHost | quote }}
+  SPRING_DATA_REDIS_PORT: "6379"
   SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
   SPRING_MAIL_HOST: "smtp.gmail.com"
   SPRING_MAIL_PORT: "587"
