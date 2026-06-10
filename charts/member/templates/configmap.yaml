@@ -18,3 +18,4 @@ data:
   AUTH_IDP_API_BASE_URI: {{ .Values.config.authApiBaseUri | quote }}
   WALLET_API_BASE_URL: {{ .Values.config.walletApiBaseUrl | quote }}
   APP_PASSWORD_RESET_BASE_URL: "https://app.dev.fisa/reset-password"
+  KAFKA_BOOTSTRAP_SERVERS: {{ .Values.config.kafkaBootstrapServers | quote }}

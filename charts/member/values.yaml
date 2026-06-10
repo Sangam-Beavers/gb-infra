@@ -27,6 +27,7 @@ config:
   authClientId: "gzoLbbd9iqqlGEPjdQAUjB9OjWL0wklVNC0u7EFm"
   authApiBaseUri: "https://sso.sb.fisa/api/v3"
   walletApiBaseUrl: "http://wallet.gb-dev.svc.cluster.local:8084"  # TODO wallet 배포 후 확인
+  kafkaBootstrapServers: "gb-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092"
 # Vault에서 가져올 비밀값 경로
 externalSecret:
   refreshInterval: 1h

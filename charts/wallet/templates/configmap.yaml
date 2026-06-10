@@ -10,3 +10,4 @@ data:
   SPRING_DATA_REDIS_HOST: {{ .Values.config.redisHost | quote }}
   SPRING_DATA_REDIS_PORT: "6379"
   SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+  KAFKA_BOOTSTRAP_SERVERS: {{ .Values.config.kafkaBootstrapServers | quote }}

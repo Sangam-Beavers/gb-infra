@@ -24,6 +24,7 @@ config:
   dbName: "wallet_db"
   redisHost: "redis.gb-dev.svc.cluster.local"
   bankApiBaseUrl: "https://banks.aoimiu.com/"
+  kafkaBootstrapServers: "gb-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092"
 # Vault에서 가져올 비밀값 경로
 externalSecret:
   refreshInterval: 1h
