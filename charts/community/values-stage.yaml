@@ -21,7 +21,6 @@ service:
 config:
   ddlAuto: "update"
   memberApiBaseUrl: "http://member.sb-stage-app-ns.svc.cluster.local:8081"
-  translationLambdaUrl: "https://ykauptk5wbugomxxrayxhz6aqm0tbpda.lambda-url.ap-northeast-2.on.aws/"
   translationAwsRegion: "ap-northeast-2"
   # redisHost 없음 — REDIS_HOST/PORT는 SM ExternalSecret(sb/stage/redis/auth)이 주입
 
@@ -32,3 +31,4 @@ externalSecret:
   psAuthIssuerUri: /sb/stage/member/AUTH_ISSUER_URI      # member와 동일 값 — 공용
   psCryptoKey: /sb/stage/member/GB_CRYPTO_KEY            # member와 동일 값 — 공용
   psKafkaBootstrapServers: /sb/stage/kafka/bootstrap_servers
+  psTranslationLambdaUrl: /sb/stage/community/TRANSLATION_LAMBDA_URL

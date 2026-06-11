@@ -17,5 +17,4 @@ data:
 
   SPRING_JPA_HIBERNATE_DDL_AUTO: {{ .Values.config.ddlAuto | quote }}
   MEMBER_API_BASE_URL: {{ .Values.config.memberApiBaseUrl | quote }}
-  TRANSLATION_LAMBDA_URL: {{ .Values.config.translationLambdaUrl | quote }}
   TRANSLATION_AWS_REGION: {{ .Values.config.translationAwsRegion | quote }}
