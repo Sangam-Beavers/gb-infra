@@ -1,0 +1,33 @@
+env: stage
+namespace: gb-stage
+secretBackend: aws
+springProfilesActive: stage
+
+image:
+  repository: harbor.sb.fisa/global_bridge/member
+  tag: "1"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+imagePullSecrets:
+  - name: harbor-dockercfg
+
+service:
+  type: ClusterIP
+  port: 8081
+  containerPort: 8081
+
+config:
+  ddlAuto: "validate"
+  redisHost: "<elasticache-endpoint>.cache.amazonaws.com"  # TODO: ElastiCache 엔드포인트
+  mailUsername: "sangam.beavers@gmail.com"
+  walletApiBaseUrl: "http://wallet.gb-stage.svc.cluster.local:8084"  # TODO: wallet stage 배포 후 확인
+  appPasswordResetBaseUrl: "https://<stage-domain>/reset-password"   # TODO: stage 도메인
+  kafkaBootstrapServers: "<kafka-broker>:9092"  # TODO: stage Kafka 브로커
+
+externalSecret:
+  refreshInterval: 1h
+  smDbPath: sb/stage/member/db
+  smRedisPath: sb/stage/redis/auth
+  psPrefix: /sb/stage/member
