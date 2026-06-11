@@ -1,0 +1,42 @@
+# stage 오버레이 — 적용:  helm ... -f values.yaml -f values-stage.yaml  (ArgoCD valueFiles 동일)
+# 비밀=AWS Secrets Manager, 인프라 참조값=Parameter Store. 실제 "값"은 여기 절대 적지 않는다(키 경로만).
+springProfilesActive: stage
+
+image:
+  repository: harbor.sb.fisa/global_bridge/wallet
+  tag: "11"
+  pullPolicy: IfNotPresent
+
+config:
+  # ── 정적 비밀 아님 값(ConfigMap) ──
+  # authIssuerUri / dbHost 는 일부러 비움:
+  #   - authIssuerUri 없음 → ConfigMap이 issuer를 안 넣고, AUTH_ISSUER_URI를 Parameter Store에서 받음
+  #   - dbHost 없음 → ConfigMap이 SPRING_DATASOURCE_URL을 안 넣고, app이 SM의 DB_HOST/PORT/NAME으로 URL 조립
+  #   - redisHost 없음 → ConfigMap이 redis host/port를 안 넣고, REDIS_HOST/REDIS_PORT를 Secrets Manager에서 받음
+  memberApiBaseUrl: "http://member.sb-stage-app-ns.svc.cluster.local:8081"
+  bankApiBaseUrl: "https://banks.aoimiu.com/"
+  kafkaBootstrapServers: "gb-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092"
+  jpaDdlAuto: "validate"   # stage는 validate (스키마 자동변경 금지)
+  # appAdminApiBaseUrl: "http://app-admin.sb-stage-app-ns.svc.cluster.local:8086"  # wallet이 app-admin 호출 시 주석 해제
+
+externalSecret:
+  refreshInterval: 1h
+  # 기본 store = Secrets Manager. Parameter Store 항목만 storeName으로 개별 override.
+  storeName: aws-secrets-manager
+  storeKind: ClusterSecretStore
+  data:
+    # ── Aurora DB 자격증명: Secrets Manager / sb/stage/wallet/db (JSON property 이름은 실제 시크릿과 일치해야 함) ──
+    - { secretKey: DB_HOST,                    key: "sb/stage/wallet/db", property: host }
+    - { secretKey: DB_PORT,                    key: "sb/stage/wallet/db", property: port }
+    - { secretKey: DB_NAME,                    key: "sb/stage/wallet/db", property: dbname }
+    - { secretKey: SPRING_DATASOURCE_USERNAME, key: "sb/stage/wallet/db", property: username }
+    - { secretKey: SPRING_DATASOURCE_PASSWORD, key: "sb/stage/wallet/db", property: password }
+    # ── Valkey 접속정보 + AUTH: Secrets Manager / sb/stage/redis/auth (property는 실제 시크릿 키와 일치해야 함) ──
+    - { secretKey: REDIS_HOST,                 key: "sb/stage/redis/auth", property: primary_host }
+    - { secretKey: REDIS_PORT,                 key: "sb/stage/redis/auth", property: port }
+    - { secretKey: SPRING_DATA_REDIS_PASSWORD, key: "sb/stage/redis/auth", property: auth_token }
+    # 읽기 replica 분산 도입 시에만 추가: { secretKey: REDIS_READER_HOST, key: "sb/stage/redis/auth", property: reader_host }
+    # ── Cognito 인프라 참조값: Parameter Store(항목별 store override). Cognito는 공유라 member 경로에 저장됨 ──
+    - { secretKey: AUTH_ISSUER_URI,       key: "/sb/stage/member/AUTH_ISSUER_URI",       storeName: aws-parameter-store }
+    - { secretKey: COGNITO_REGION,        key: "/sb/stage/member/COGNITO_REGION",        storeName: aws-parameter-store }
+    - { secretKey: COGNITO_USER_POOL_ID,  key: "/sb/stage/member/COGNITO_USER_POOL_ID",  storeName: aws-parameter-store }
