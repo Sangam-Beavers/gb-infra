@@ -29,7 +29,6 @@ config:
   dbHost: "mysql-lb.gb-dev.svc.cluster.local"
   dbPort: "3306"
   dbName: "document_db"
-  redisHost: "redis.gb-dev.svc.cluster.local"
 # Vault에서 가져올 비밀값 경로
 externalSecret:
   refreshInterval: 1h
