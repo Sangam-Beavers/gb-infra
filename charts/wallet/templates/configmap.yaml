@@ -19,7 +19,10 @@ data:
   SPRING_DATA_REDIS_PORT: {{ .Values.config.redisPort | default "6379" | quote }}
 {{- end }}
   SPRING_JPA_HIBERNATE_DDL_AUTO: {{ .Values.config.jpaDdlAuto | default "update" | quote }}
+{{- if .Values.config.kafkaBootstrapServers }}
+  # dev: ConfigMap에서 주입. stage: Parameter Store(KAFKA_BOOTSTRAP_SERVERS)에서 받음(이 줄 생략).
   KAFKA_BOOTSTRAP_SERVERS: {{ .Values.config.kafkaBootstrapServers | quote }}
+{{- end }}
 {{- if .Values.config.appAdminApiBaseUrl }}
   APP_ADMIN_API_BASE_URL: {{ .Values.config.appAdminApiBaseUrl | quote }}
 {{- end }}
