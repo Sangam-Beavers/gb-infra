@@ -14,6 +14,10 @@ spec:
       labels:
         app: member
     spec:
+      {{- if eq .Values.secretBackend "aws" }}
+      # stage: Cognito 관리 IRSA SA (install-k8s-stack이 생성·annotate). dev(vault)는 default SA.
+      serviceAccountName: member
+      {{- end }}
       securityContext:
         seccompProfile:
           type: RuntimeDefault
