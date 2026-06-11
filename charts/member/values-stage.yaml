@@ -19,7 +19,7 @@ service:
   containerPort: 8081
 
 config:
-  ddlAuto: "validate"
+  ddlAuto: "update"
   # redisHost 없음 → ConfigMap이 redis host/port 안 넣음. REDIS_HOST/PORT는 SM ExternalSecret에서 주입
   mailUsername: "sangam.beavers@gmail.com"
   walletApiBaseUrl: "http://wallet.sb-stage-app-ns.svc.cluster.local:8084"
