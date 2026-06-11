@@ -1,36 +1,33 @@
-# 컨테이너 이미지
+env: stage
+namespace: gb-stage
+secretBackend: aws
+springProfilesActive: stage
+
 image:
   repository: harbor.sb.fisa/global_bridge/member
-  tag: "5"
+  tag: "1"
   pullPolicy: IfNotPresent
-# Pod 개수
+
 replicaCount: 1
-# Harbor 사설 레지스트리 인증
+
 imagePullSecrets:
   - name: harbor-dockercfg
-# Spring server.port = 8081
+
 service:
+  type: ClusterIP
   port: 8081
   containerPort: 8081
-  type: ClusterIP
-# 어느 환경에서 도는지
-springProfilesActive: dev
-# 평범한 설정값 (ConfigMap으로 주입)
+
 config:
-  authIssuerUri: "https://sso.sb.fisa/application/o/gb-backend/"
-  dbHost: "mysql-lb.gb-dev.svc.cluster.local"
-  dbPort: "3306"
-  dbName: "member_db"
-  redisHost: "redis.gb-dev.svc.cluster.local"
+  ddlAuto: "validate"
+  redisHost: "<elasticache-endpoint>.cache.amazonaws.com"  # TODO: ElastiCache 엔드포인트
   mailUsername: "sangam.beavers@gmail.com"
-  authTokenUri: "https://sso.sb.fisa/application/o/token/"
-  authClientId: "gzoLbbd9iqqlGEPjdQAUjB9OjWL0wklVNC0u7EFm"
-  authApiBaseUri: "https://sso.sb.fisa/api/v3"
-  walletApiBaseUrl: "http://wallet.gb-dev.svc.cluster.local:8084"  # TODO wallet 배포 후 확인
-  kafkaBootstrapServers: "gb-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092"
-# Vault에서 가져올 비밀값 경로
+  walletApiBaseUrl: "http://wallet.gb-stage.svc.cluster.local:8084"  # TODO: wallet stage 배포 후 확인
+  appPasswordResetBaseUrl: "https://<stage-domain>/reset-password"   # TODO: stage 도메인
+  kafkaBootstrapServers: "<kafka-broker>:9092"  # TODO: stage Kafka 브로커
+
 externalSecret:
   refreshInterval: 1h
-  storeName: vault-backend
-  storeKind: ClusterSecretStore
-  vaultPath: "member-service/dev"
+  smDbPath: sb/stage/member/db
+  smRedisPath: sb/stage/redis/auth
+  psPrefix: /sb/stage/member
