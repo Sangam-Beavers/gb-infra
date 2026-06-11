@@ -13,6 +13,8 @@ service:
   port: 8084
   containerPort: 8084
   type: ClusterIP
+# 비밀 백엔드 — dev=vault, stage=aws (values-stage.yaml에서 override)
+secretBackend: vault
 # 어느 환경에서 도는지
 springProfilesActive: dev
 # 평범한 설정값 (ConfigMap으로 주입)
@@ -25,13 +27,18 @@ config:
   redisHost: "redis.gb-dev.svc.cluster.local"
   bankApiBaseUrl: "https://banks.aoimiu.com/"
   kafkaBootstrapServers: "gb-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092"
-# Vault에서 가져올 비밀값 경로
+  ddlAuto: "update"
+# 컨테이너 리소스 (requests/limits) — env별 override 가능
+resources:
+  requests:
+    memory: 768Mi
+    cpu: 250m
+  limits:
+    memory: 1.5Gi
+    cpu: "1"
+# Vault에서 가져올 비밀값 경로 (dev)
 externalSecret:
   refreshInterval: 1h
   storeName: vault-backend
   storeKind: ClusterSecretStore
-  # 항목 형식: { secretKey, key, property?, storeName?(항목별 override), storeKind? }
-  data:
-    - { secretKey: SPRING_DATASOURCE_USERNAME, key: "wallet-service/dev", property: db_username }
-    - { secretKey: SPRING_DATASOURCE_PASSWORD, key: "wallet-service/dev", property: db_password }
-    - { secretKey: SPRING_DATA_REDIS_PASSWORD, key: "wallet-service/dev", property: redis_password }
+  vaultPath: "wallet-service/dev"
