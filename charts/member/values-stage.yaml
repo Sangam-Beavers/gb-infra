@@ -30,3 +30,4 @@ externalSecret:
   smDbPath: sb/stage/member/db
   smRedisPath: sb/stage/redis/auth
   psPrefix: /sb/stage/member
+  psKafkaBootstrapServers: /sb/stage/kafka/bootstrap_servers
