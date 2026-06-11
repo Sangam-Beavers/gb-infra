@@ -4,7 +4,7 @@ springProfilesActive: stage
 
 image:
   repository: harbor.sb.fisa/global_bridge/wallet
-  tag: "11"
+  tag: "10"
   pullPolicy: IfNotPresent
 
 # stage 가용성: 베이스(1) override
@@ -19,7 +19,12 @@ config:
   #   - kafkaBootstrapServers 없음 → ConfigMap이 안 넣고, KAFKA_BOOTSTRAP_SERVERS를 Parameter Store에서 받음
   memberApiBaseUrl: "http://member.sb-stage-app-ns.svc.cluster.local:8081"
   bankApiBaseUrl: "https://banks.aoimiu.com/"
+<<<<<<< HEAD
   jpaDdlAuto: "validate"   # stage는 validate (스키마 자동변경 금지)
+=======
+  kafkaBootstrapServers: "gb-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092"
+  #jpaDdlAuto: "validate"   # stage는 validate (스키마 자동변경 금지)
+>>>>>>> 0f05d85d7e1ef0f74828619b3edc30d4bacc1ca5
   # appAdminApiBaseUrl: "http://app-admin.sb-stage-app-ns.svc.cluster.local:8086"  # wallet이 app-admin 호출 시 주석 해제
 
 externalSecret:
