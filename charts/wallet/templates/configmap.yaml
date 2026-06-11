@@ -3,26 +3,24 @@ kind: ConfigMap
 metadata:
   name: wallet-config
 data:
-{{- if .Values.config.authIssuerUri }}
-  # dev: ConfigMap에서 issuer 주입. stage: Parameter Store(AUTH_ISSUER_URI)에서 오므로 여기선 생략.
+  {{- if eq .Values.secretBackend "vault" }}
+  # dev 전용: issuer URI, DB URL, Redis host/port (stage는 ExternalSecret(SM/PS)에서)
   SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: {{ .Values.config.authIssuerUri | quote }}
-{{- end }}
+  SPRING_DATASOURCE_URL: "jdbc:mysql://{{ .Values.config.dbHost }}:{{ .Values.config.dbPort }}/{{ .Values.config.dbName }}?serverTimezone=UTC&characterEncoding=UTF-8"
+  SPRING_DATA_REDIS_HOST: {{ .Values.config.redisHost | quote }}
+  SPRING_DATA_REDIS_PORT: "6379"
+  {{- end }}
+  # stage(aws): 위 값들은 ExternalSecret(SM/PS) + application-stage.yml 이 처리
+
+  # K8s probe 그룹(/actuator/health/{liveness,readiness}) 노출 — liveness가 외부 의존성에 안 묶이게
+  MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: {{ .Values.config.ddlAuto | quote }}
   MEMBER_API_BASE_URL: {{ .Values.config.memberApiBaseUrl | quote }}
   BANK_API_BASE_URL: {{ .Values.config.bankApiBaseUrl | quote }}
-{{- if .Values.config.dbHost }}
-  # dev: ConfigMap에서 full URL 주입. stage: DB_HOST/DB_PORT/DB_NAME을 Secrets Manager에서 받아 app이 URL 조립(이 줄 생략).
-  SPRING_DATASOURCE_URL: "jdbc:mysql://{{ .Values.config.dbHost }}:{{ .Values.config.dbPort }}/{{ .Values.config.dbName }}?serverTimezone=UTC&characterEncoding=UTF-8"
-{{- end }}
-{{- if .Values.config.redisHost }}
-  # dev: ConfigMap에서 redis host/port 주입. stage: Secrets Manager(REDIS_HOST/REDIS_PORT)에서 받음(이 줄 생략).
-  SPRING_DATA_REDIS_HOST: {{ .Values.config.redisHost | quote }}
-  SPRING_DATA_REDIS_PORT: {{ .Values.config.redisPort | default "6379" | quote }}
-{{- end }}
-  SPRING_JPA_HIBERNATE_DDL_AUTO: {{ .Values.config.jpaDdlAuto | default "update" | quote }}
-{{- if .Values.config.kafkaBootstrapServers }}
-  # dev: ConfigMap에서 주입. stage: Parameter Store(KAFKA_BOOTSTRAP_SERVERS)에서 받음(이 줄 생략).
-  KAFKA_BOOTSTRAP_SERVERS: {{ .Values.config.kafkaBootstrapServers | quote }}
-{{- end }}
-{{- if .Values.config.appAdminApiBaseUrl }}
+  {{- if .Values.config.appAdminApiBaseUrl }}
   APP_ADMIN_API_BASE_URL: {{ .Values.config.appAdminApiBaseUrl | quote }}
-{{- end }}
+  {{- end }}
+  {{- if eq .Values.secretBackend "vault" }}
+  # dev(vault): ES가 kafka를 안 주므로 configmap이 소유. stage(aws)는 ExternalSecret(PS) 단독 소유.
+  KAFKA_BOOTSTRAP_SERVERS: {{ .Values.config.kafkaBootstrapServers | quote }}
+  {{- end }}
