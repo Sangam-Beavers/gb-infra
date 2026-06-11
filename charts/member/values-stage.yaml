@@ -19,6 +19,7 @@ service:
   containerPort: 8081
 
 config:
+  # ⚠ stage 검증 한정 (자동 스키마 생성). prod는 validate + 마이그레이션 (Flyway/Liquibase) 으로 전환할 것.
   ddlAuto: "update"
   # redisHost 없음 → ConfigMap이 redis host/port 안 넣음. REDIS_HOST/PORT는 SM ExternalSecret에서 주입
   mailUsername: "sangam.beavers@gmail.com"

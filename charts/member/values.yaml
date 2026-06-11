@@ -30,6 +30,14 @@ config:
   appPasswordResetBaseUrl: "https://app.dev.fisa/reset-password"
   kafkaBootstrapServers: "gb-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092"
   ddlAuto: "update"
+# 컨테이너 리소스 (requests/limits) — env별 override 가능
+resources:
+  requests:
+    memory: 768Mi
+    cpu: 250m
+  limits:
+    memory: 1.5Gi
+    cpu: "1"
 # Vault에서 가져올 비밀값 경로
 externalSecret:
   refreshInterval: 1h

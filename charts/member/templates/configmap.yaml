@@ -15,6 +15,8 @@ data:
   {{- end }}
   # stage(aws): 위 값들은 ExternalSecret(SM/PS) + application-stage.yml 이 처리
 
+  # K8s probe 그룹(/actuator/health/{liveness,readiness}) 노출 — liveness가 외부 의존성에 안 묶이게
+  MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
   SPRING_JPA_HIBERNATE_DDL_AUTO: {{ .Values.config.ddlAuto | quote }}
   SPRING_MAIL_HOST: "smtp.gmail.com"
   SPRING_MAIL_PORT: "587"
@@ -23,4 +25,7 @@ data:
   SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
   WALLET_API_BASE_URL: {{ .Values.config.walletApiBaseUrl | quote }}
   APP_PASSWORD_RESET_BASE_URL: {{ .Values.config.appPasswordResetBaseUrl | quote }}
+  {{- if eq .Values.secretBackend "vault" }}
+  # dev(vault): ES가 kafka를 안 주므로 configmap이 소유. stage(aws)는 ExternalSecret(PS) 단독 소유.
   KAFKA_BOOTSTRAP_SERVERS: {{ .Values.config.kafkaBootstrapServers | quote }}
+  {{- end }}
