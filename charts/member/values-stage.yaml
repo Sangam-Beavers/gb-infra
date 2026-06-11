@@ -23,8 +23,7 @@ config:
   # redisHost 없음 → ConfigMap이 redis host/port 안 넣음. REDIS_HOST/PORT는 SM ExternalSecret에서 주입
   mailUsername: "sangam.beavers@gmail.com"
   walletApiBaseUrl: "http://wallet.sb-stage-app-ns.svc.cluster.local:8084"
-  appPasswordResetBaseUrl: "https://<stage-domain>/reset-password"   # TODO
-  kafkaBootstrapServers: "gb-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092"
+  appPasswordResetBaseUrl: "https://d3dbftmbedkk3p.cloudfront.net/reset-password"   # TODO 클라우드 프론트
 
 externalSecret:
   refreshInterval: 1h
