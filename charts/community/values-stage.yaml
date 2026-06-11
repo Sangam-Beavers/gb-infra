@@ -29,5 +29,6 @@ externalSecret:
   refreshInterval: 1h
   smDbPath: sb/stage/community/db
   smRedisPath: sb/stage/redis/auth
-  psPrefix: /sb/stage/community
+  psAuthIssuerUri: /sb/stage/member/AUTH_ISSUER_URI      # member와 동일 값 — 공용
+  psCryptoKey: /sb/stage/member/GB_CRYPTO_KEY            # member와 동일 값 — 공용
   psKafkaBootstrapServers: /sb/stage/kafka/bootstrap_servers
