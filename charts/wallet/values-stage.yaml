@@ -4,7 +4,7 @@ springProfilesActive: stage
 
 image:
   repository: harbor.sb.fisa/global_bridge/wallet
-  tag: "11"
+  tag: "10"
   pullPolicy: IfNotPresent
 
 config:
@@ -16,7 +16,7 @@ config:
   memberApiBaseUrl: "http://member.sb-stage-app-ns.svc.cluster.local:8081"
   bankApiBaseUrl: "https://banks.aoimiu.com/"
   kafkaBootstrapServers: "gb-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092"
-  jpaDdlAuto: "validate"   # stage는 validate (스키마 자동변경 금지)
+  #jpaDdlAuto: "validate"   # stage는 validate (스키마 자동변경 금지)
   # appAdminApiBaseUrl: "http://app-admin.sb-stage-app-ns.svc.cluster.local:8086"  # wallet이 app-admin 호출 시 주석 해제
 
 externalSecret:
