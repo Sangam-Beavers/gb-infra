@@ -25,8 +25,6 @@ data:
   GB_ANALYSIS_CONSUMER_QUEUE_NAME: {{ .Values.config.analysisConsumerQueueName | quote }}
   GB_ANALYSIS_UPLOAD_BUCKET: {{ .Values.config.analysisUploadBucket | quote }}
   GB_ANALYSIS_AWS_REGION: {{ .Values.config.analysisAwsRegion | quote }}
-  # GB_ANALYSIS_REQUEST_QUEUE_URL: stage에 request 큐 없음 → base application.yaml 기본값(빈 값) 사용.
-  #   (retry 시 Lambda A 재트리거 경로만 비활성. 정상 수신/업로드 경로는 영향 없음)
   CHATBOT_FUNCTION_URL: {{ .Values.config.chatbotFunctionUrl | quote }}
   CHATBOT_AWS_REGION: {{ .Values.config.chatbotAwsRegion | quote }}
   {{- end }}
