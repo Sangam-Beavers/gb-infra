@@ -5,7 +5,7 @@ springProfilesActive: stage
 
 image:
   repository: harbor.sb.fisa/global_bridge/community
-  tag: "1"                           # Jenkins GitOps 스텝이 BUILD_NUMBER로 자동 갱신
+  tag: "1"
   pullPolicy: IfNotPresent
 
 replicaCount: 2
