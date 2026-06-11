@@ -3,13 +3,19 @@ kind: ConfigMap
 metadata:
   name: community-config
 data:
-  # JWT 검증용 OIDC issuer (Authentik/Cognito)
+  {{- if eq .Values.secretBackend "vault" }}
+  # dev 전용: Authentik issuer URI, DB URL, Redis host, Kafka
+  # (MEMBER_API_BASE_URL은 공통 — vault 블록 밖에서 주입)
   SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: {{ .Values.config.authIssuerUri | quote }}
-  # community → member-service 호출 base URL
-  MEMBER_API_BASE_URL: {{ .Values.config.memberApiBaseUrl | quote }}
-  # Aurora MySQL JDBC URL
   SPRING_DATASOURCE_URL: "jdbc:mysql://{{ .Values.config.dbHost }}:{{ .Values.config.dbPort }}/{{ .Values.config.dbName }}?serverTimezone=UTC&characterEncoding=UTF-8"
   SPRING_DATA_REDIS_HOST: {{ .Values.config.redisHost | quote }}
-  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
-  # Kafka 브로커
   SPRING_KAFKA_BOOTSTRAP_SERVERS: {{ .Values.config.kafkaBootstrapServers | quote }}
+  {{- end }}
+  # stage(aws): 위 값들은 ExternalSecret(SM/PS) + application-stage.yml 이 처리
+  # REDIS_HOST/PORT/PASSWORD, AUTH_ISSUER_URI, KAFKA_BOOTSTRAP_SERVERS → ExternalSecret
+  # MEMBER_API_BASE_URL → 아래 ConfigMap
+
+  SPRING_JPA_HIBERNATE_DDL_AUTO: {{ .Values.config.ddlAuto | quote }}
+  MEMBER_API_BASE_URL: {{ .Values.config.memberApiBaseUrl | quote }}
+  TRANSLATION_LAMBDA_URL: {{ .Values.config.translationLambdaUrl | quote }}
+  TRANSLATION_AWS_REGION: {{ .Values.config.translationAwsRegion | quote }}

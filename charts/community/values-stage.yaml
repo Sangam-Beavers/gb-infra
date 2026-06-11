@@ -1,0 +1,33 @@
+env: stage
+namespace: sb-stage-app-ns
+secretBackend: aws
+springProfilesActive: stage
+
+image:
+  repository: harbor.sb.fisa/global_bridge/community
+  tag: "1"                           # Jenkins GitOps 스텝이 BUILD_NUMBER로 자동 갱신
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+imagePullSecrets:
+  - name: harbor-dockercfg
+
+service:
+  type: ClusterIP
+  port: 8080
+  containerPort: 8082
+
+config:
+  ddlAuto: "update"
+  memberApiBaseUrl: "http://member.sb-stage-app-ns.svc.cluster.local:8081"
+  translationLambdaUrl: "https://ykauptk5wbugomxxrayxhz6aqm0tbpda.lambda-url.ap-northeast-2.on.aws/"
+  translationAwsRegion: "ap-northeast-2"
+  # redisHost 없음 — REDIS_HOST/PORT는 SM ExternalSecret(sb/stage/redis/auth)이 주입
+
+externalSecret:
+  refreshInterval: 1h
+  smDbPath: sb/stage/community/db
+  smRedisPath: sb/stage/redis/auth
+  psPrefix: /sb/stage/community
+  psKafkaBootstrapServers: /sb/stage/kafka/bootstrap_servers
