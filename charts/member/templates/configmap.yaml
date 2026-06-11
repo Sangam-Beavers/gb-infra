@@ -3,19 +3,24 @@ kind: ConfigMap
 metadata:
   name: member-config
 data:
+  {{- if eq .Values.secretBackend "vault" }}
+  # dev 전용: Authentik issuer URI, DB URL, IdP 클라이언트 정보 (ConfigMap 직접 주입)
   SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: {{ .Values.config.authIssuerUri | quote }}
   SPRING_DATASOURCE_URL: "jdbc:mysql://{{ .Values.config.dbHost }}:{{ .Values.config.dbPort }}/{{ .Values.config.dbName }}?serverTimezone=UTC&characterEncoding=UTF-8"
+  AUTH_IDP_TOKEN_URI: {{ .Values.config.authTokenUri | quote }}
+  AUTH_IDP_CLIENT_ID: {{ .Values.config.authClientId | quote }}
+  AUTH_IDP_API_BASE_URI: {{ .Values.config.authApiBaseUri | quote }}
+  {{- end }}
+  # stage(aws): 위 값들은 ExternalSecret(PS/SM) 또는 application-stage.yml 이 처리
+
   SPRING_DATA_REDIS_HOST: {{ .Values.config.redisHost | quote }}
   SPRING_DATA_REDIS_PORT: "6379"
-  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: {{ .Values.config.ddlAuto | quote }}
   SPRING_MAIL_HOST: "smtp.gmail.com"
   SPRING_MAIL_PORT: "587"
   SPRING_MAIL_USERNAME: {{ .Values.config.mailUsername | quote }}
   SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "true"
   SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
-  AUTH_IDP_TOKEN_URI: {{ .Values.config.authTokenUri | quote }}
-  AUTH_IDP_CLIENT_ID: {{ .Values.config.authClientId | quote }}
-  AUTH_IDP_API_BASE_URI: {{ .Values.config.authApiBaseUri | quote }}
   WALLET_API_BASE_URL: {{ .Values.config.walletApiBaseUrl | quote }}
-  APP_PASSWORD_RESET_BASE_URL: "https://app.dev.fisa/reset-password"
+  APP_PASSWORD_RESET_BASE_URL: {{ .Values.config.appPasswordResetBaseUrl | quote }}
   KAFKA_BOOTSTRAP_SERVERS: {{ .Values.config.kafkaBootstrapServers | quote }}
