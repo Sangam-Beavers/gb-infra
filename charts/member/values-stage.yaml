@@ -1,5 +1,5 @@
 env: stage
-namespace: gb-stage
+namespace: sb-stage-app-ns
 secretBackend: aws
 springProfilesActive: stage
 
