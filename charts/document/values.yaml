@@ -15,6 +15,13 @@ service:
   type: ClusterIP
 # 어느 환경에서 도는지
 springProfilesActive: dev
+# 비밀 백엔드: dev=vault(externalsecret.yaml), stage=aws(externalsecret-aws.yaml, values-stage.yaml에서 override)
+secretBackend: vault
+# 런타임 IRSA(SQS/S3/Lambda 호출용). dev는 로컬 AWS_PROFILE을 쓰므로 SA 불필요 → 미생성.
+serviceAccount:
+  create: false
+  name: ""
+  roleArn: ""
 # 평범한 설정값 (ConfigMap으로 주입)
 config:
   authIssuerUri: "https://sso.sb.fisa/application/o/gb-backend/"

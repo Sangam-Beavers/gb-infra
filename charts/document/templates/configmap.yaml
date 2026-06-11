@@ -3,9 +3,30 @@ kind: ConfigMap
 metadata:
   name: document-config
 data:
+  {{- if eq .Values.secretBackend "vault" }}
+  # dev(vault) 전용 — stage(aws)는 ExternalSecret(SM/PS) + application-stage.yml 이 처리.
+  # (stage에서 이 키들을 ConfigMap으로 주입하면 env가 application-stage.yml을 덮어써 버림)
   SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: {{ .Values.config.authIssuerUri | quote }}
-  MEMBER_API_BASE_URL: {{ .Values.config.memberApiBaseUrl | quote }}
   SPRING_DATASOURCE_URL: "jdbc:mysql://{{ .Values.config.dbHost }}:{{ .Values.config.dbPort }}/{{ .Values.config.dbName }}?serverTimezone=UTC&characterEncoding=UTF-8"
   SPRING_DATA_REDIS_HOST: {{ .Values.config.redisHost | quote }}
   SPRING_DATA_REDIS_PORT: "6379"
   SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+  {{- end }}
+
+  # 공통(dev/stage) — 비밀 아닌 평범한 참조값
+  MEMBER_API_BASE_URL: {{ .Values.config.memberApiBaseUrl | quote }}
+
+  {{- if eq .Values.secretBackend "aws" }}
+  # stage(aws) 전용: AI 분석 파이프라인(SQS/S3) + 챗봇 Lambda 인프라 참조값.
+  # 모두 "비밀 아님"(Terraform 산출물/IAM 인가) → ConfigMap 주입.
+  # 비밀(DB)·PS값(AUTH_ISSUER_URI/KAFKA_BOOTSTRAP_SERVERS)은 ExternalSecret이 담당.
+  # ddl-auto는 stage에서 application-stage.yml의 validate를 그대로 사용(ConfigMap 미주입).
+  GB_ANALYSIS_RESULT_QUEUE_ARN: {{ .Values.config.analysisResultQueueArn | quote }}
+  GB_ANALYSIS_CONSUMER_QUEUE_NAME: {{ .Values.config.analysisConsumerQueueName | quote }}
+  GB_ANALYSIS_UPLOAD_BUCKET: {{ .Values.config.analysisUploadBucket | quote }}
+  GB_ANALYSIS_AWS_REGION: {{ .Values.config.analysisAwsRegion | quote }}
+  # GB_ANALYSIS_REQUEST_QUEUE_URL: stage에 request 큐 없음 → base application.yaml 기본값(빈 값) 사용.
+  #   (retry 시 Lambda A 재트리거 경로만 비활성. 정상 수신/업로드 경로는 영향 없음)
+  CHATBOT_FUNCTION_URL: {{ .Values.config.chatbotFunctionUrl | quote }}
+  CHATBOT_AWS_REGION: {{ .Values.config.chatbotAwsRegion | quote }}
+  {{- end }}

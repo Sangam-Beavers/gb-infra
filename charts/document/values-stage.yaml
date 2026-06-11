@@ -1,0 +1,45 @@
+env: stage
+namespace: sb-stage-app-ns
+secretBackend: aws
+springProfilesActive: stage
+
+image:
+  repository: harbor.sb.fisa/global_bridge/document
+  tag: "4"                 # stage로 승격한 이미지 태그로 핀 고정 (CI 산출물에 맞게 조정)
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+imagePullSecrets:
+  - name: harbor-dockercfg
+
+service:
+  type: ClusterIP
+  port: 8083
+  containerPort: 8083
+
+config:
+  # redisHost 없음 — document는 stage에서 Redis 미사용(application-stage.yml에 spring.data.redis 없음)
+  memberApiBaseUrl: "http://member.sb-stage-app-ns.svc.cluster.local:8081"
+  # ── AI 분석 파이프라인 (SQS/S3) — 비밀 아님, ConfigMap 주입 ──
+  analysisResultQueueArn: "arn:aws:sqs:ap-northeast-2:241706222734:gb-analysis-results"
+  analysisConsumerQueueName: "gb-analysis-results"     # 결과 수신 Consumer가 읽는 큐
+  analysisUploadBucket: "gb-document-bucket"           # presigned PUT 대상 (original/ 접두사)
+  analysisAwsRegion: "ap-northeast-2"
+  # ── 챗봇 Lambda (IAM SigV4 인가라 URL 자체는 비밀 아님) ──
+  chatbotFunctionUrl: "https://et2vrpzj7hruxjp6yn2zu4fkem0lowsz.lambda-url.ap-northeast-2.on.aws/"
+  chatbotAwsRegion: "ap-northeast-2"
+
+# 런타임 IRSA — SQS(gb-analysis-results) consume + S3(gb-document-bucket) presign/head + Lambda(gb-chatbot) invoke
+# roleArn이 빌 동안은 SA/serviceAccountName 둘 다 렌더 안 됨(현 상태=기본 SA) → 안전.
+# Terraform이 IAM Role 생성 후 그 ARN 한 줄만 채우면 활성화.
+serviceAccount:
+  create: true
+  name: document
+  roleArn: ""   # TODO: arn:aws:iam::241706222734:role/sb-stage-document-irsa
+
+externalSecret:
+  refreshInterval: 1h
+  smDbPath: sb/stage/document/db                       # SM: DB 자격증명(username/password/host/port/dbname)
+  psAuthIssuerUri: /sb/stage/member/AUTH_ISSUER_URI    # PS: Cognito issuer (member와 동일 값 — 공용)
+  psKafkaBootstrapServers: /sb/stage/kafka/bootstrap_servers  # PS: Kafka 브로커 주소 (공용)
