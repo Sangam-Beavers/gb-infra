@@ -23,11 +23,11 @@ service:
 # 다른 서비스 호출 URL은 stage k8s DNS(sb-stage-app-ns). Grafana/ArgoCD는 임베드 표시용.
 config:
   memberHealthUrl: "http://member.sb-stage-app-ns.svc.cluster.local:8081"
-  communityHealthUrl: "http://community.sb-stage-app-ns.svc.cluster.local:8082"
+  communityHealthUrl: "http://community.sb-stage-app-ns.svc.cluster.local:8080"   # community는 Service 포트 8080 (containerPort 8082와 다름)
   documentHealthUrl: "http://document.sb-stage-app-ns.svc.cluster.local:8083"
   walletHealthUrl: "http://wallet.sb-stage-app-ns.svc.cluster.local:8084"
   memberInternalUrl: "http://member.sb-stage-app-ns.svc.cluster.local:8081"
-  communityInternalUrl: "http://community.sb-stage-app-ns.svc.cluster.local:8082"
+  communityInternalUrl: "http://community.sb-stage-app-ns.svc.cluster.local:8080"   # community는 Service 포트 8080
   documentInternalUrl: "http://document.sb-stage-app-ns.svc.cluster.local:8083"
   walletInternalUrl: "http://wallet.sb-stage-app-ns.svc.cluster.local:8084"
   grafanaBaseUrl: "http://localhost:3000"   # TODO 실제 stage Grafana 주소로 교체

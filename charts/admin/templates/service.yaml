@@ -1,7 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: admin
+  # 이름은 admin-service — 어드민 프론트(monitoring) nginx가
+  # http://admin-service.sb-stage-app-ns.svc.cluster.local:8085 로 프록시하므로 일치시켜야 한다.
+  name: admin-service
   labels:
     app: admin
 spec:
