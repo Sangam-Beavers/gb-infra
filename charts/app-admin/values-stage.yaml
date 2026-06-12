@@ -1,0 +1,29 @@
+env: stage
+namespace: sb-stage-app-ns
+secretBackend: aws
+springProfilesActive: stage
+
+image:
+  repository: harbor.sb.fisa/global_bridge/app-admin
+  tag: "1"
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+imagePullSecrets:
+  - name: harbor-dockercfg
+
+service:
+  type: ClusterIP
+  port: 8086
+  containerPort: 8086
+
+config:
+  ddlAuto: "update"
+  memberInternalUrl: "http://member.sb-stage-app-ns.svc.cluster.local:8081"
+  communityInternalUrl: "http://community.sb-stage-app-ns.svc.cluster.local:8082"
+
+externalSecret:
+  refreshInterval: 1h
+  smDbPath: sb/stage/app-admin/db                       # AWS Secrets Manager: DB (host/port/dbname/username/password)
+  psAuthIssuerUri: /sb/stage/member/AUTH_ISSUER_URI     # member와 동일 값 — 공용 Cognito issuer
