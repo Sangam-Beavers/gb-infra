@@ -22,7 +22,7 @@ config:
   # redisHost 없음 — document는 stage에서 Redis 미사용(application-stage.yml에 spring.data.redis 없음)
   memberApiBaseUrl: "http://member.sb-stage-app-ns.svc.cluster.local:8081"
   # ── AI 분석 파이프라인 (SQS/S3) — 비밀 아님, ConfigMap 주입 ──
-  analysisResultQueueArn: "arn:aws:sqs:ap-northeast-2:241706222734:gb-analysis-results"
+  analysisResultQueueArn: "arn:aws:sqs:ap-northeast-2:713729793436:gb-analysis-results"
   analysisConsumerQueueName: "gb-analysis-results"     # 결과 수신 Consumer가 읽는 큐
   analysisUploadBucket: "gb-document-bucket"           # presigned PUT 대상 (original/ 접두사)
   analysisAwsRegion: "ap-northeast-2"
@@ -36,7 +36,7 @@ config:
 serviceAccount:
   create: true
   name: document
-  roleArn: ""   # TODO: arn:aws:iam::241706222734:role/sb-stage-document-irsa
+  roleArn: "arn:aws:iam::713729793436:role/sb-stage-document-irsa"   # Terraform module.document_irsa (output document_irsa_role_arn)
 
 externalSecret:
   refreshInterval: 1h
