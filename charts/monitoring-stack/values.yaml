@@ -21,6 +21,11 @@ kube-prometheus-stack:
         alb.ingress.kubernetes.io/scheme: internal
         alb.ingress.kubernetes.io/target-type: ip
         alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+        # 어드민 콘솔(monitoring) 인그레스와 동일 — 회사망이 닿는 관리 서브넷 + 인바운드 CIDR 지정.
+        # 이게 없으면 기본 서브넷에 ALB가 떠서 사내 브라우저에서 접근 불가(ERR_CONNECTION_TIMED_OUT).
+        alb.ingress.kubernetes.io/subnets: sb-stage-mgmt-a,sb-stage-mgmt-c
+        alb.ingress.kubernetes.io/inbound-cidrs: 10.10.0.0/24,10.10.1.0/24
+        alb.ingress.kubernetes.io/healthcheck-path: /
       hosts: []                        # 호스트리스 — 생성된 내부 ELB 주소로 접근
       path: /
     # 대시보드 ConfigMap 자동 import (label=grafana_dashboard 붙은 CM을 사이드카가 로드)

@@ -30,8 +30,8 @@ config:
   communityInternalUrl: "http://community.sb-stage-app-ns.svc.cluster.local:8080"   # community는 Service 포트 8080
   documentInternalUrl: "http://document.sb-stage-app-ns.svc.cluster.local:8083"
   walletInternalUrl: "http://wallet.sb-stage-app-ns.svc.cluster.local:8084"
-  grafanaBaseUrl: "http://localhost:3000"   # TODO 실제 stage Grafana 주소로 교체
-  argocdBaseUrl: "http://localhost:8080"    # TODO 실제 stage ArgoCD 주소로 교체
+  grafanaBaseUrl: "http://internal-k8s-monitori-monitori-c176229a39-1932184299.ap-northeast-2.elb.amazonaws.com"
+  argocdBaseUrl: "https://argocd.sb.fisa"   # ArgoCD는 iframe 차단 → "새 창에서 열기"용 링크
 
 # DB 시크릿(admin 전용) — 팀원이 Terraform으로 생성: 스키마 svc_admin / 유저 admin_svc
 externalSecret:

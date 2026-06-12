@@ -114,6 +114,11 @@ Redis 프로토콜로 ElastiCache 엔드포인트에 **직접 접속**해 긁는
 - 클러스터 모드: 시크릿이 `primary_host`(단일) → cluster-mode disabled(primary/replica)로 보이므로 단일 엔드포인트로 충분.
 - 대시보드 UID `redis` 와 연결.
 
+> **config 거버넌스 노트 (Terraform 담당 확인)**: admin의 `GRAFANA_BASE_URL`·`ARGOCD_BASE_URL`은
+> **비밀이 아니라** values-stage.yaml(Git/ConfigMap)에 직접 둔다 — admin의 다른 서비스 URL(`MEMBER_INTERNAL_URL` 등)과
+> 동일한 성격. 다만 환경별 인프라 엔드포인트이므로, **Terraform 버전에선 Cognito issuer처럼 Parameter Store로 이관**하는
+> 것을 검토 권장(SM은 비밀 전용이라 대상 아님). 현재는 박아두고 진행.
+
 ## 6. admin 콘솔 연동 (값 교체 + 정리)
 
 1. **admin 차트** `charts/admin/values-stage.yaml`:
@@ -137,14 +142,54 @@ Aurora는 RDS의 한 엔진이므로 CloudWatch에 RDS 지표가 있으나, 이 
 향후 DB 메트릭이 필요하면 **CloudWatch보다 `mysqld_exporter`(in-cluster, IAM 불필요)** 가 더 쉬운 대안.
 도입 시 별도 섹션으로 추가한다.
 
-## 8. 배포 (ArgoCD, GitOps)
+## 8. 배포 — 수동 helm 설치 (interim) + Terraform 인계
 
-- 위치/방식: `TODO(확정)` — ① gb-infra에 wrapper 차트(`charts/monitoring-stack`, kube-prometheus-stack 의존)
-  또는 ② ArgoCD Application이 업스트림 차트 + 우리 valueFiles 참조(multi-source).
-- ArgoCD Application destination: **cluster `sb-stage-eks`**(in-cluster 아님 — admin-stage 사고 재발 방지), namespace `monitoring`, `CreateNamespace=true`.
-- 방식: gb-infra **`charts/monitoring-stack`** 래퍼 차트(kube-prometheus-stack 의존성). ArgoCD가 Helm 의존성을
-  자동 빌드(prometheus-community 레포 인터넷 접근 필요).
-- chart 버전 고정: kube-prometheus-stack **`86.2.2`** (2026-06 기준 최신 안정판, `charts/monitoring-stack/Chart.yaml`).
+### 8-0. 왜 ArgoCD가 아니라 수동 helm인가 (중요 — Terraform 담당 읽을 것)
+
+ArgoCD의 **sb-stage-eks 클러스터 연결이 namespaced mode** (`NAMESPACES: sb-stage-app-ns` 한정)로
+등록돼 있다. 이 모드에서는 **클러스터 전역 리소스(CRD·ClusterRole·Admission Webhook)를 만들 수 없다.**
+kube-prometheus-stack은 이들이 필수라 ArgoCD 경로로는 배포 불가(`"cluster level CRD can not be managed
+when in namespaced mode"` 에러). admin·community 등 앱은 네임스페이스 리소스뿐이라 영향 없었음.
+
+→ 보안 경계(앱용 namespaced 연결)는 그대로 두고, **인프라 레벨인 모니터링 스택만 cluster-admin 권한으로
+직접 설치**한다. 아래 명령이 SSOT이며, **Terraform 담당은 이를 `helm_release`(§9)로 코드화**하면 된다.
+
+### 8-1. 사전조건
+- 설치자 kubeconfig가 **sb-stage-eks + cluster-admin** (확인: `kubectl auth can-i create customresourcedefinitions` → yes).
+- chart 버전: kube-prometheus-stack **`86.2.2`** (`charts/monitoring-stack/Chart.yaml`).
+
+### 8-2. 실행 명령 (실제로 친 것 그대로)
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+cd gb-infra/charts/monitoring-stack
+helm dependency build                                  # kube-prometheus-stack 86.2.2 vendoring
+helm install monitoring-stack . -n monitoring --create-namespace
+```
+- 릴리스명 `monitoring-stack`, 네임스페이스 **`monitoring`**(전용. ArgoCD 제약 없으니 격리 복원).
+- 우리 래퍼 차트가 kube-prometheus-stack + ServiceMonitor(`gb-spring-services`) + redis_exporter +
+  대시보드를 한 번에 설치.
+
+### 8-3. 검증
+```bash
+kubectl -n monitoring get pods                         # prometheus·grafana·operator·exporters Running
+kubectl -n monitoring get ingress                      # Grafana 내부 ALB 주소
+```
+- 배포 후 실값:
+  - Grafana ELB 주소 = `internal-k8s-monitori-monitori-c176229a39-1932184299.ap-northeast-2.elb.amazonaws.com` (내부 ALB)
+  - 대시보드 실제 UID (admin 임베드에 반영 완료):
+    - Kubernetes(Compute Resources/Cluster) = `efa86fd1d0c121a26444b636a3f509a8`
+    - JVM(Micrometer) = `0829a2c7-6bad-4fc7-97b9-badb9568c87e`
+    - Spring(Java SpringBoot APM) = `X09JGT7Gz`
+    - Redis(Prometheus Redis Exporter 1.x) = `e008bc3f-81a2-40f9-baf2-a33fd8dec7ec`
+    - AWS RDS = 제거(미도입)
+
+### 8-4. 업그레이드 / 삭제 (참고)
+```bash
+helm upgrade monitoring-stack . -n monitoring          # values 변경 반영
+helm uninstall monitoring-stack -n monitoring          # 제거(CRD는 helm이 안 지움 — 수동 정리 필요 시 kubectl delete crd ...)
+```
 
 ## 9. Terraform 이행 (나중에 한 번에)
 
@@ -156,7 +201,7 @@ resource "helm_release" "kube_prometheus_stack" {
   name       = "kube-prometheus-stack"
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-prometheus-stack"
-  version    = "TODO"           # §8에서 고정한 버전
+  version    = "86.2.2"         # §8-1과 동일 (charts/monitoring-stack/Chart.yaml)
   namespace  = "monitoring"
   create_namespace = true
   values     = [file("values/kube-prometheus-stack.stage.yaml")]   # §3 그대로
