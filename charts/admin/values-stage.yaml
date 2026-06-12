@@ -1,0 +1,39 @@
+# stage 오버레이 — 적용: helm ... -f values.yaml -f values-stage.yaml (ArgoCD valueFiles 동일)
+# 비밀=AWS Secrets Manager. 실제 "값"은 여기 적지 않는다(키 경로만).
+env: stage
+namespace: sb-stage-app-ns
+secretBackend: aws
+springProfilesActive: stage
+
+image:
+  repository: harbor.sb.fisa/global_bridge/admin
+  tag: "1"
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+imagePullSecrets:
+  - name: harbor-dockercfg
+
+service:
+  type: ClusterIP
+  port: 8085
+  containerPort: 8085
+
+# 다른 서비스 호출 URL은 stage k8s DNS(sb-stage-app-ns). Grafana/ArgoCD는 임베드 표시용.
+config:
+  memberHealthUrl: "http://member.sb-stage-app-ns.svc.cluster.local:8081"
+  communityHealthUrl: "http://community.sb-stage-app-ns.svc.cluster.local:8082"
+  documentHealthUrl: "http://document.sb-stage-app-ns.svc.cluster.local:8083"
+  walletHealthUrl: "http://wallet.sb-stage-app-ns.svc.cluster.local:8084"
+  memberInternalUrl: "http://member.sb-stage-app-ns.svc.cluster.local:8081"
+  communityInternalUrl: "http://community.sb-stage-app-ns.svc.cluster.local:8082"
+  documentInternalUrl: "http://document.sb-stage-app-ns.svc.cluster.local:8083"
+  walletInternalUrl: "http://wallet.sb-stage-app-ns.svc.cluster.local:8084"
+  grafanaBaseUrl: "http://localhost:3000"   # TODO 실제 stage Grafana 주소로 교체
+  argocdBaseUrl: "http://localhost:8080"    # TODO 실제 stage ArgoCD 주소로 교체
+
+# DB 시크릿(admin 전용) — 팀원이 Terraform으로 생성: 스키마 svc_admin / 유저 admin_svc
+externalSecret:
+  refreshInterval: 1h
+  smDbPath: sb/stage/admin/db
