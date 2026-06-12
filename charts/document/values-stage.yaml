@@ -36,7 +36,7 @@ config:
 serviceAccount:
   create: true
   name: document
-  roleArn: ""   # TODO: arn:aws:iam::241706222734:role/sb-stage-document-irsa
+  roleArn: "arn:aws:iam::713729793436:role/sb-stage-document-irsa"   # Terraform module.document_irsa (output document_irsa_role_arn)
 
 externalSecret:
   refreshInterval: 1h
