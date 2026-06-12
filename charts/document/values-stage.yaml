@@ -5,7 +5,7 @@ springProfilesActive: stage
 
 image:
   repository: harbor.sb.fisa/global_bridge/document
-  tag: "4"                 # stage로 승격한 이미지 태그로 핀 고정 (CI 산출물에 맞게 조정)
+  tag: "1"
   pullPolicy: IfNotPresent
 
 replicaCount: 2
