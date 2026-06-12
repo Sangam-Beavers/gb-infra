@@ -27,12 +27,6 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.service.containerPort }}
-          env:
-            # FastMCP 내부 uvicorn이 0.0.0.0 바인딩하도록 강제 (기본값 127.0.0.1 → K8s 프로브 접근 불가)
-            - name: UVICORN_HOST
-              value: "0.0.0.0"
-            - name: UVICORN_PORT
-              value: "8000"
           envFrom:
             - secretRef:
                 name: mcp-exchange-secrets
