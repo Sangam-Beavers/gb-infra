@@ -1,0 +1,31 @@
+# stage (AWS EKS) override — 모니터링 대시보드를 VPN 전용으로만 노출.
+#
+# 왜 mgmt 서브넷인가:
+#   VPN(WireGuard+BGP)은 mgmt 대역만 온프렘에 광고하고 private(EKS)은 은닉한다
+#   (environments/staging: advertise_cidrs = mgmt). 따라서 내부 ALB를 private에 두면
+#   VPN 클라이언트가 못 닿는다 → ALB를 반드시 mgmt 서브넷에 배치하고, Pod는 private에
+#   둔 채 target-type:ip로 크로스서브넷 타깃한다. 온프렘→mgmt는 SNAT 없이(소스 IP 보존)
+#   BGP 라우팅되므로 inbound는 온프렘 CIDR로 제한한다.
+#
+# subnets 값은 서브넷 Name 태그(sb-stage-mgmt-a/c)다 — 계정 ID/ARN 하드코딩 없이 결정적 참조.
+# (AWS LBC subnets 어노테이션은 ID 또는 Name 태그를 받는다)
+
+image:
+  tag: "1" # 실제 빌드 태그로 교체 (Jenkins → Harbor)
+
+ingress:
+  enabled: true
+  className: alb
+  host: "" # 내부 ALB DNS로 직접 접속 (호스트 규칙 없음). 친화 DNS는 Route53 private 레코드로 추가 가능.
+  annotations:
+    # dev 전용 cert-manager 어노테이션 제거 (Helm은 맵을 딥 머지 → null로 키 삭제)
+    cert-manager.io/cluster-issuer: null
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/subnets: sb-stage-mgmt-a,sb-stage-mgmt-c
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/inbound-cidrs: 10.10.0.0/24,10.10.1.0/24
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    alb.ingress.kubernetes.io/load-balancer-name: sb-stage-monitoring
+    alb.ingress.kubernetes.io/healthcheck-path: /
+  tls:
+    enabled: false # 내부망 전용 stage는 HTTP. HTTPS가 필요하면 ACM private CA + cert-arn 어노테이션.

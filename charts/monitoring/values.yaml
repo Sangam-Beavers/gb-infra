@@ -1,0 +1,42 @@
+# 컨테이너 이미지 (정적 SPA를 담은 nginx — Jenkins가 빌드해 Harbor로 푸시)
+image:
+  repository: harbor.sb.fisa/global_bridge/monitoring
+  tag: "1"
+  pullPolicy: IfNotPresent
+
+# Harbor 사설 레지스트리 인증 (앱 ns에 harbor-dockercfg 존재 — install-k8s-stack/ESO가 구비)
+imagePullSecrets:
+  - name: harbor-dockercfg
+
+replicaCount: 1
+
+# nginx 정적 서빙 포트
+containerPort: 80
+
+service:
+  type: ClusterIP
+  port: 80
+
+# dev(온프렘): cilium ingress + 로컬 CA TLS (front-app과 동일 기조).
+# stage(AWS)는 values-stage.yaml에서 VPN 전용 내부 ALB로 override한다.
+ingress:
+  enabled: true
+  className: cilium
+  host: monitoring.dev.fisa
+  annotations:
+    cert-manager.io/cluster-issuer: "sb-local-ca-issuer"
+  tls:
+    enabled: true
+    secretName: monitoring-tls
+
+# 정적 대시보드라 런타임 환경변수 주입은 기본 없음.
+# (API base URL 등이 필요하면 docker-entrypoint.sh sed 치환용으로 키를 추가 — front-app 참고)
+env: {}
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi

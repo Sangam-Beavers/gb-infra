@@ -1,0 +1,6 @@
+apiVersion: v2
+name: monitoring
+description: 운영 모니터링 대시보드 (정적 SPA + nginx) — stage는 VPN 전용 내부 ALB로만 노출
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
