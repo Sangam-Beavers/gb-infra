@@ -1,0 +1,15 @@
+# stage 오버레이 — 적용: helm ... -f values.yaml -f values-stage.yaml (ArgoCD valueFiles 동일)
+# 비밀=AWS Secrets Manager. 실제 "값"은 여기 적지 않는다(키 경로만).
+secretBackend: aws
+namespace: sb-stage-app-ns
+
+image:
+  repository: harbor.sb.fisa/global_bridge/mcp-exchange
+  tag: "1"   # Jenkins가 BUILD_NUMBER로 자동 갱신
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+externalSecret:
+  refreshInterval: 1h
+  smRedisPath: sb/stage/redis/auth   # primary_host / port / auth_token / tls
