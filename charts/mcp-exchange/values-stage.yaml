@@ -5,7 +5,7 @@ namespace: sb-stage-app-ns
 
 image:
   repository: harbor.sb.fisa/global_bridge/mcp-exchange
-  tag: "1"   # Jenkins가 BUILD_NUMBER로 자동 갱신
+  tag: "4"
   pullPolicy: IfNotPresent
 
 replicaCount: 2
