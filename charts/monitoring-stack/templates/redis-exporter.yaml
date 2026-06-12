@@ -1,0 +1,70 @@
+# redis_exporter — ElastiCache(stage Redis)를 Redis 프로토콜로 직접 긁어 Prometheus에 노출.
+# 인증/주소는 기존 sb/stage/redis/auth 시크릿 재사용(아래 ExternalSecret). CloudWatch/IRSA 불필요.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-exporter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: redis-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-exporter
+  template:
+    metadata:
+      labels:
+        app: redis-exporter
+    spec:
+      containers:
+        - name: redis-exporter
+          image: oliver006/redis_exporter:v1.62.0
+          env:
+            - name: REDIS_HOST
+              valueFrom: { secretKeyRef: { name: redis-exporter-secret, key: REDIS_HOST } }
+            - name: REDIS_PORT
+              valueFrom: { secretKeyRef: { name: redis-exporter-secret, key: REDIS_PORT } }
+            # ElastiCache 전송중 암호화 → rediss://. (REDIS_HOST/PORT는 위에서 먼저 정의돼 $() 치환됨)
+            - name: REDIS_ADDR
+              value: "rediss://$(REDIS_HOST):$(REDIS_PORT)"
+            - name: REDIS_PASSWORD
+              valueFrom: { secretKeyRef: { name: redis-exporter-secret, key: REDIS_PASSWORD } }
+            - name: REDIS_EXPORTER_SKIP_TLS_VERIFICATION
+              value: "true"
+          ports:
+            - name: metrics
+              containerPort: 9121
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-exporter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: redis-exporter
+spec:
+  selector:
+    app: redis-exporter
+  ports:
+    - name: metrics
+      port: 9121
+      targetPort: metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: redis-exporter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    release: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app: redis-exporter
+  endpoints:
+    - port: metrics
+      interval: 30s

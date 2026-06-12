@@ -1,0 +1,12 @@
+apiVersion: v2
+name: monitoring-stack
+description: kube-prometheus-stack 래퍼 — Prometheus·Grafana·exporters (stage). admin 콘솔 Grafana 임베드용.
+type: application
+version: 0.1.0
+appVersion: "1"
+
+dependencies:
+  - name: kube-prometheus-stack
+    # 2026-06 기준 최신 안정판. 업데이트 시 artifacthub.io에서 확인.
+    version: "86.2.2"
+    repository: https://prometheus-community.github.io/helm-charts

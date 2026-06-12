@@ -1,0 +1,23 @@
+# Spring 6서비스 일괄 스크레이프. 각 서비스 Service의 'http' 포트 → /actuator/prometheus.
+# (community는 Service 8080→containerPort 8082로 포워딩되며 actuator가 그 위에 있음)
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: gb-spring-services
+  namespace: {{ .Release.Namespace }}
+  labels:
+    release: {{ .Release.Name }}
+spec:
+  namespaceSelector:
+    matchNames:
+      - sb-stage-app-ns
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: [member, wallet, community, document, admin, app-admin]
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s
+      scrapeTimeout: 10s

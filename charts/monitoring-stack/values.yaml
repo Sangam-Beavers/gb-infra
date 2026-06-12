@@ -1,0 +1,82 @@
+# monitoring-stack — kube-prometheus-stack 서브차트 설정.
+# 서브차트 값은 차트 이름 키(kube-prometheus-stack) 아래에 둔다.
+kube-prometheus-stack:
+
+  # ── Grafana (admin 콘솔 임베드가 핵심) ─────────────────────────────
+  grafana:
+    enabled: true
+    grafana.ini:
+      security:
+        allow_embedding: true          # iframe 임베드 허용 (기본 X-Frame-Options deny 해제)
+      auth.anonymous:
+        enabled: true                  # 로그인 벽 제거 — 내부 전용이라 익명 허용
+        org_role: Viewer               # 읽기 전용
+    service:
+      type: ClusterIP
+    # 내부 ALB 인그레스 (admin 콘솔과 동일 패턴: alb · internal)
+    ingress:
+      enabled: true
+      ingressClassName: alb
+      annotations:
+        alb.ingress.kubernetes.io/scheme: internal
+        alb.ingress.kubernetes.io/target-type: ip
+        alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+      hosts: []                        # 호스트리스 — 생성된 내부 ELB 주소로 접근
+      path: /
+    # 대시보드 ConfigMap 자동 import (label=grafana_dashboard 붙은 CM을 사이드카가 로드)
+    sidecar:
+      dashboards:
+        enabled: true
+        label: grafana_dashboard
+        searchNamespace: ALL
+        provider:
+          allowUiUpdates: true
+    # 커뮤니티 검증 대시보드를 gnetId로 자동 import (A안).
+    # k8s 대시보드는 kube-prometheus-stack 기본 포함(defaultDashboardsEnabled).
+    # ⚠ 배포 후 Grafana에서 각 대시보드 실제 UID를 확인해 admin-service 임베드 URL에 반영(Track B).
+    dashboardProviders:
+      dashboardproviders.yaml:
+        apiVersion: 1
+        providers:
+          - name: gb-default
+            orgId: 1
+            folder: GB
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/gb-default
+    dashboards:
+      gb-default:
+        jvm-micrometer:
+          gnetId: 4701          # JVM (Micrometer)
+          revision: 10
+          datasource: Prometheus
+        spring-boot-statistics:
+          gnetId: 12900         # Spring Boot 2.1 Statistics
+          revision: 1
+          datasource: Prometheus
+        redis:
+          gnetId: 763           # Redis Dashboard for Prometheus Redis Exporter
+          revision: 6
+          datasource: Prometheus
+
+  # ── Prometheus ────────────────────────────────────────────────────
+  prometheus:
+    prometheusSpec:
+      retention: 7d
+      # 다른 NS(sb-stage-app-ns)의 ServiceMonitor도 픽업하도록 셀렉터 개방
+      serviceMonitorSelectorNilUsesHelmValues: false
+      serviceMonitorNamespaceSelector: {}
+      podMonitorNamespaceSelector: {}
+      ruleNamespaceSelector: {}
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+        limits:
+          memory: 1Gi
+
+  # ── Alertmanager: 1차엔 비활성 (필요 시 켬) ─────────────────────────
+  alertmanager:
+    enabled: false
