@@ -17,6 +17,11 @@ service:
   containerPort: 8082  # 추가 (실제 앱 포트)
   type: ClusterIP
 
+# 런타임 SA — 기본 off. stage(values-stage)에서 create:true + EKS Pod Identity로 역할 바인딩.
+serviceAccount:
+  create: false
+  name: community
+
 # 어느 환경에서 도는지 (Dockerfile 기본값 dev를 K8s에서도 dev로)
 springProfilesActive: dev
 

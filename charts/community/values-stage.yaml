@@ -18,6 +18,12 @@ service:
   port: 8080
   containerPort: 8082
 
+# community Pod 런타임 SA — Terraform module.community_access(EKS Pod Identity)이 이 이름으로 IAM 역할 바인딩.
+# roleArn 어노테이션 불필요(Pod Identity). 번역 Lambda(gb-community-translator, AWS_IAM) 호출 자격을 얻는다.
+serviceAccount:
+  create: true
+  name: community
+
 config:
   ddlAuto: "update"
   memberApiBaseUrl: "http://member.sb-stage-app-ns.svc.cluster.local:8081"
