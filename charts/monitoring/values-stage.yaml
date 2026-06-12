@@ -11,7 +11,14 @@
 # (AWS LBC subnets 어노테이션은 ID 또는 Name 태그를 받는다)
 
 image:
-  tag: "1" # 실제 빌드 태그로 교체 (Jenkins → Harbor)
+  tag: "1" # Jenkins가 BUILD_NUMBER로 자동 갱신
+
+replicaCount: 2
+
+# nginx 내부 /api/ proxy 대상 — admin-service K8s ClusterDNS (시크릿 아님 → ConfigMap/values 직접 기재)
+# admin-service가 배포되면 실제 서비스명/포트로 확인 후 수정.
+env:
+  ADMIN_API_URL: "http://admin-service.sb-stage-app-ns.svc.cluster.local:8085"
 
 ingress:
   enabled: true

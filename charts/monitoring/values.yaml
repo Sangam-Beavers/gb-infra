@@ -29,9 +29,12 @@ ingress:
     enabled: true
     secretName: monitoring-tls
 
-# 정적 대시보드라 런타임 환경변수 주입은 기본 없음.
-# (API base URL 등이 필요하면 docker-entrypoint.sh sed 치환용으로 키를 추가 — front-app 참고)
-env: {}
+# docker-entrypoint.sh 가 envsubst 로 nginx.conf 템플릿에 주입하는 런타임 환경변수.
+# ADMIN_API_URL: nginx 내부에서 /api/ 요청을 proxy_pass 할 admin-service 주소.
+#   dev(온프렘):  http://localhost:8085  (Vite proxy 개발기이므로 Docker 실행 시에만 의미)
+#   stage(AWS):  values-stage.yaml에서 K8s ClusterDNS로 override
+env:
+  ADMIN_API_URL: "http://localhost:8085"
 
 resources:
   requests:

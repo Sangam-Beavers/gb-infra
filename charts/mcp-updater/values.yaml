@@ -1,0 +1,31 @@
+image:
+  repository: harbor.sb.fisa/global_bridge/exchange-updater
+  tag: "1"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: harbor-dockercfg
+
+# UTC 기준. 0 15 * * * = UTC 15:00 = KST 00:00 (자정)
+# 외부 환율 API(open.er-api.com)가 UTC 자정 전후 갱신하므로 충분한 여유를 두고 KST 자정에 실행.
+schedule: "0 15 * * *"
+
+successfulJobsHistoryLimit: 3
+failedJobsHistoryLimit: 3
+
+# 비밀 백엔드 — dev=vault, stage=aws (values-stage.yaml에서 override)
+secretBackend: vault
+
+namespace: sb-dev-app-ns
+
+externalSecret:
+  refreshInterval: 1h
+  smRedisPath: sb/stage/redis/auth
+
+resources:
+  requests:
+    memory: 128Mi
+    cpu: 100m
+  limits:
+    memory: 256Mi
+    cpu: 200m

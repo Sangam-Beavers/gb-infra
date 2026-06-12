@@ -1,0 +1,6 @@
+apiVersion: v2
+name: mcp-updater
+description: exchange-updater CronJob — 매일 자정 open.er-api.com → Redis 환율 갱신
+type: application
+version: 0.1.0
+appVersion: "1"
