@@ -5,7 +5,7 @@ namespace: sb-stage-app-ns
 
 image:
   repository: harbor.sb.fisa/global_bridge/mcp-community
-  tag: "2"
+  tag: "3"
   pullPolicy: IfNotPresent
 
 replicaCount: 2
