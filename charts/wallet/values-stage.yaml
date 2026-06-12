@@ -26,7 +26,7 @@ config:
   # authIssuerUri/dbHost/redisHost/kafkaBootstrapServers 없음 → ConfigMap 생략, SM/PS(ExternalSecret)에서 주입
   memberApiBaseUrl: "http://member.sb-stage-app-ns.svc.cluster.local:8081"
   bankApiBaseUrl: "https://banks.aoimiu.com/"
-  # appAdminApiBaseUrl: "http://app-admin.sb-stage-app-ns.svc.cluster.local:8086"  # wallet이 app-admin 호출 시 주석 해제
+  appAdminApiBaseUrl: "http://app-admin.sb-stage-app-ns.svc.cluster.local:8086"  # wallet → app-admin 수수료 정책 조회 (EXCHANGE/CASHOUT)
 
 externalSecret:
   refreshInterval: 1h
