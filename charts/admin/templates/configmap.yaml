@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: admin-config
+data:
+  # admin이 호출하는 다른 서비스의 health/internal API URL.
+  # base application.yaml의 ${MEMBER_HEALTH_URL:...} 등 기본값(localhost)을 환경별 k8s DNS로 덮어쓴다.
+  MEMBER_HEALTH_URL: {{ .Values.config.memberHealthUrl | quote }}
+  COMMUNITY_HEALTH_URL: {{ .Values.config.communityHealthUrl | quote }}
+  DOCUMENT_HEALTH_URL: {{ .Values.config.documentHealthUrl | quote }}
+  WALLET_HEALTH_URL: {{ .Values.config.walletHealthUrl | quote }}
+  MEMBER_INTERNAL_URL: {{ .Values.config.memberInternalUrl | quote }}
+  COMMUNITY_INTERNAL_URL: {{ .Values.config.communityInternalUrl | quote }}
+  DOCUMENT_INTERNAL_URL: {{ .Values.config.documentInternalUrl | quote }}
+  WALLET_INTERNAL_URL: {{ .Values.config.walletInternalUrl | quote }}
+  # Grafana/ArgoCD 대시보드 임베드 base URL (프론트가 임베드 링크 생성에 사용)
+  GRAFANA_BASE_URL: {{ .Values.config.grafanaBaseUrl | quote }}
+  ARGOCD_BASE_URL: {{ .Values.config.argocdBaseUrl | quote }}

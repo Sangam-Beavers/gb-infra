@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-admin-config
+data:
+  {{- if eq .Values.secretBackend "vault" }}
+  # dev 전용: Authentik issuer URI, DB URL
+  # (MEMBER_INTERNAL_URL/COMMUNITY_INTERNAL_URL은 공통 — vault 블록 밖에서 주입)
+  SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: {{ .Values.config.authIssuerUri | quote }}
+  SPRING_DATASOURCE_URL: "jdbc:mysql://{{ .Values.config.dbHost }}:{{ .Values.config.dbPort }}/{{ .Values.config.dbName }}?serverTimezone=UTC&characterEncoding=UTF-8"
+  {{- end }}
+  # stage(aws): DB/issuer 값은 ExternalSecret(SM/PS) + application-stage.yml 이 처리
+  # MEMBER_INTERNAL_URL/COMMUNITY_INTERNAL_URL → 아래 ConfigMap (비밀 아님)
+
+  # K8s probe 그룹(/actuator/health/{liveness,readiness}) 노출 — liveness가 외부 의존성에 안 묶이게
+  MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: {{ .Values.config.ddlAuto | quote }}
+  MEMBER_INTERNAL_URL: {{ .Values.config.memberInternalUrl | quote }}
+  COMMUNITY_INTERNAL_URL: {{ .Values.config.communityInternalUrl | quote }}

@@ -1,0 +1,52 @@
+# admin-service 기본값 — dev 기준. stage는 values-stage.yaml이 override.
+image:
+  repository: harbor.sb.fisa/global_bridge/admin
+  tag: "1"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+imagePullSecrets:
+  - name: harbor-dockercfg
+
+# Spring server.port = 8085
+service:
+  type: ClusterIP
+  port: 8085
+  containerPort: 8085
+
+# 어느 환경에서 도는지
+springProfilesActive: dev
+
+# 비밀 백엔드 — dev=vault(externalsecret.yaml), stage=aws(externalsecret-aws.yaml)
+secretBackend: vault
+
+namespace: sb-dev-app-ns
+
+# 비밀 아닌 설정(ConfigMap admin-config로 주입) — 다른 서비스 호출 URL + 임베드 base URL
+config:
+  memberHealthUrl: "http://member.gb-dev.svc.cluster.local:8081"
+  communityHealthUrl: "http://community.gb-dev.svc.cluster.local:8082"
+  documentHealthUrl: "http://document.gb-dev.svc.cluster.local:8083"
+  walletHealthUrl: "http://wallet.gb-dev.svc.cluster.local:8084"
+  memberInternalUrl: "http://member.gb-dev.svc.cluster.local:8081"
+  communityInternalUrl: "http://community.gb-dev.svc.cluster.local:8082"
+  documentInternalUrl: "http://document.gb-dev.svc.cluster.local:8083"
+  walletInternalUrl: "http://wallet.gb-dev.svc.cluster.local:8084"
+  grafanaBaseUrl: "http://localhost:3000"   # TODO dev Grafana 주소
+  argocdBaseUrl: "http://localhost:8080"    # TODO dev ArgoCD 주소
+
+# Vault에서 가져올 비밀값 경로 (dev — db_password만)
+externalSecret:
+  refreshInterval: 1h
+  storeName: vault-backend
+  storeKind: ClusterSecretStore
+  vaultPath: "admin-service/dev"
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 1Gi
+    cpu: 500m

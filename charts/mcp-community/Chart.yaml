@@ -1,0 +1,6 @@
+apiVersion: v2
+name: mcp-community
+description: mcp-community (MCP2) 커뮤니티 게시글 검색 서버 — community DB(svc_community)를 직접 조회하는 FastMCP Streamable HTTP 서버
+type: application
+version: 0.1.0
+appVersion: "1"

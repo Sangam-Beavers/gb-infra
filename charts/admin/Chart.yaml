@@ -1,0 +1,6 @@
+apiVersion: v2
+name: admin
+description: gb-backend admin-service Helm chart (운영자 백오피스 BFF, 포트 8085 — 인증 비활성/로그인 없음)
+type: application
+version: 0.1.0
+appVersion: "0.0.1"

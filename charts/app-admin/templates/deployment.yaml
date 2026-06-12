@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-admin
+  labels:
+    app: app-admin
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: app-admin
+  template:
+    metadata:
+      labels:
+        app: app-admin
+    spec:
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      containers:
+        - name: app-admin
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.containerPort }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.springProfilesActive | quote }}
+          envFrom:
+            - configMapRef:
+                name: app-admin-config       # configmap.yaml 이 만드는 ConfigMap
+            - secretRef:
+                name: app-admin-secrets      # externalsecret 이 만드는 Secret
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5

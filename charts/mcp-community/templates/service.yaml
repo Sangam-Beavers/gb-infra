@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-community
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: mcp-community
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: mcp-community
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http

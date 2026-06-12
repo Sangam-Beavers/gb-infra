@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin
+  labels:
+    app: admin
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: admin
+  template:
+    metadata:
+      labels:
+        app: admin
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      containers:
+        - name: admin
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.containerPort }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.springProfilesActive | quote }}
+          envFrom:
+            # admin-config: 비밀 아닌 설정(다른 서비스 URL, Grafana/ArgoCD base URL)
+            - configMapRef:
+                name: admin-config
+            # admin-secrets: DB 접속정보 (dev=vault / stage=aws ExternalSecret)
+            - secretRef:
+                name: admin-secrets
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

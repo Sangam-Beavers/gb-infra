@@ -1,0 +1,45 @@
+# ── dev(온프렘/Vault) 기본값 ─────────────────────────────────────────
+# stage 배포는 values-stage.yaml 이 override 한다(secretBackend: aws).
+# app-admin은 Redis/Kafka/번역Lambda 미사용 — 관련 항목 없음.
+
+# 컨테이너 이미지
+image:
+  repository: harbor.sb.fisa/global_bridge/app-admin
+  tag: "1"
+  pullPolicy: IfNotPresent
+
+# Pod 개수
+replicaCount: 1
+
+# Harbor 사설 레지스트리 인증
+imagePullSecrets:
+  - name: harbor-dockercfg
+
+# Spring server.port = 8086 (service.port = containerPort, 정석)
+service:
+  port: 8086
+  containerPort: 8086
+  type: ClusterIP
+
+# 어느 환경에서 도는지 (Dockerfile 기본값 dev를 K8s에서도 dev로)
+springProfilesActive: dev
+
+# dev는 Vault 백엔드
+secretBackend: vault
+
+# 평범한 설정값 (ConfigMap으로 주입 — 비밀 아님)
+config:
+  authIssuerUri: "https://sso.sb.fisa/application/o/gb-backend/"          # TODO 확인
+  memberInternalUrl: "http://member.member-dev.svc.cluster.local:8081"    # TODO member 배포 시
+  communityInternalUrl: "http://community.community-dev.svc.cluster.local:8082"  # TODO community 배포 시
+  dbHost: "mysql-lb.gb-dev.svc.cluster.local"
+  dbPort: "3306"
+  dbName: "admin_db"
+  ddlAuto: "update"
+
+# Vault에서 가져올 비밀값 경로 (ExternalSecret 참조)
+externalSecret:
+  refreshInterval: 1h
+  storeName: vault-backend
+  storeKind: ClusterSecretStore
+  vaultPath: "app-admin-service/dev"   # Vault 안 경로 (Phase 3에 비밀값 넣을 위치)
