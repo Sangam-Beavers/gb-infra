@@ -1,0 +1,37 @@
+# mcp-community (MCP2) 기본값 — dev 기준. stage는 values-stage.yaml이 override.
+# (mcp-updater 차트와 동일한 미니멀 구조: _helpers/configmap 없음, 시크릿은 ExternalSecret 재사용)
+image:
+  repository: harbor.sb.fisa/global_bridge/mcp-community
+  tag: "1"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: harbor-dockercfg
+
+replicaCount: 1
+
+# FastMCP Streamable HTTP 기본 포트 8000
+service:
+  type: ClusterIP
+  port: 8000
+  containerPort: 8000
+
+# 비밀 백엔드 — dev=vault, stage=aws (values-stage.yaml에서 override)
+# ⚠ dev(vault)에서는 externalsecret-aws가 렌더되지 않는다. mcp-updater와 동일하게
+#   dev는 로컬 .env로 구동하는 전제이며, 클러스터 배포는 stage를 1차 타깃으로 한다.
+secretBackend: vault
+
+namespace: sb-dev-app-ns
+
+# DB 시크릿은 community-service의 것을 재사용한다(별도 시크릿/PS 신설 없음).
+externalSecret:
+  refreshInterval: 1h
+  smDbPath: sb/stage/community/db
+
+resources:
+  requests:
+    memory: 128Mi
+    cpu: 100m
+  limits:
+    memory: 256Mi
+    cpu: 200m

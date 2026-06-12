@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-community
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: mcp-community
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: mcp-community
+  template:
+    metadata:
+      labels:
+        app: mcp-community
+    spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      containers:
+        - name: mcp-community
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.containerPort }}
+          env:
+            # FastMCP는 기본적으로 127.0.0.1에 바인딩한다 → 클러스터 Service/probe가 못 붙는다.
+            # 0.0.0.0으로 바인딩하도록 강제(FastMCP Settings env_prefix = FASTMCP_).
+            - name: FASTMCP_HOST
+              value: "0.0.0.0"
+            - name: FASTMCP_PORT
+              value: {{ .Values.service.containerPort | quote }}
+          envFrom:
+            # externalsecret-aws.yaml이 만드는 Secret — community DB 접속정보(COMMUNITY_DB_*)
+            - secretRef:
+                name: mcp-community-secrets
+          # MCP 서버는 HTTP health 엔드포인트가 없으므로 TCP 소켓으로 기동 확인
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]

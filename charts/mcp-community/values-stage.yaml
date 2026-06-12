@@ -1,0 +1,19 @@
+# stage 오버레이 — 적용: helm ... -f values.yaml -f values-stage.yaml (ArgoCD valueFiles 동일)
+# 비밀=AWS Secrets Manager. 실제 "값"은 여기 적지 않는다(키 경로만).
+secretBackend: aws
+namespace: sb-stage-app-ns
+
+image:
+  repository: harbor.sb.fisa/global_bridge/mcp-community
+  tag: "1"
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+externalSecret:
+  refreshInterval: 1h
+  # community-service의 DB 시크릿을 그대로 재사용(읽기·쓰기 계정 community_svc).
+  # 신규 시크릿/Parameter Store 없음. ESO가 username/password/host/port/dbname을
+  # COMMUNITY_DB_* 환경변수로 리매핑(externalsecret-aws.yaml).
+  # TODO(운영 전환): SELECT 전용 mcp_reader 계정 + sb/stage/community/mcp-reader로 분리.
+  smDbPath: sb/stage/community/db
