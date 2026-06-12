@@ -1,0 +1,31 @@
+image:
+  repository: harbor.sb.fisa/global_bridge/mcp-exchange
+  tag: "1"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: harbor-dockercfg
+
+replicaCount: 2
+
+# 비밀 백엔드 — dev=vault, stage=aws (values-stage.yaml에서 override)
+secretBackend: vault
+
+namespace: sb-dev-app-ns
+
+service:
+  type: ClusterIP
+  port: 8000
+  containerPort: 8000
+
+externalSecret:
+  refreshInterval: 1h
+  smRedisPath: sb/stage/redis/auth
+
+resources:
+  requests:
+    memory: 128Mi
+    cpu: 100m
+  limits:
+    memory: 256Mi
+    cpu: 200m
