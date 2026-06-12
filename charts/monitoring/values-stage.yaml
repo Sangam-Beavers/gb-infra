@@ -11,7 +11,7 @@
 # (AWS LBC subnets 어노테이션은 ID 또는 Name 태그를 받는다)
 
 image:
-  tag: "5"
+  tag: "6"
 
 replicaCount: 2
 
