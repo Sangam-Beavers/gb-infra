@@ -131,16 +131,76 @@ Redis 프로토콜로 ElastiCache 엔드포인트에 **직접 접속**해 긁는
 > **인라인 임베드 vs 새 창**: §3 설정이 끝나면 iframe 인라인이 뜬다. ArgoCD는 온프렘 + iframe 차단이라
 > 인라인 임베드가 까다로우니 **ArgoCD는 "새 창에서 열기"만** 사용하는 것을 권장(URL만 맞추면 동작).
 
-## 7. 보류 — AWS RDS(Aurora) CloudWatch 대시보드
+## 7. AWS Aurora / ElastiCache 지표 — YACE(CloudWatch Exporter) [도입]
 
-Aurora는 RDS의 한 엔진이므로 CloudWatch에 RDS 지표가 있으나, 이 대시보드는 **현재 도입하지 않는다**:
+> 이전 "보류" 결정을 뒤집어 **도입**한다. 결정 근거: ① 이미 kube-prometheus-stack + Alertmanager 운영 중이라
+> 한 곳(Prometheus)으로 통일하면 알림·상관분석이 단일 경로가 됨 ② 우리가 임베드를 **자동 새로고침**으로 바꿔서,
+> CloudWatch **직결**은 보는 사람 수만큼 GetMetricData를 호출(요금↑)하지만 YACE는 **중앙 1회 폴링**이라 비용이 고정됨.
+> `mysqld_exporter`는 in-cluster라 IAM이 불필요하지만 **ElastiCache의 Evictions·ReplicationLag, Aurora의
+> AuroraReplicaLag·Deadlocks 같은 매니지드 전용 지표**를 못 본다 → 데이터 계층은 CloudWatch가 정답.
 
-- **AWS IAM(IRSA)** 필요 → 크로스팀/Terraform 의존
-- **CloudWatch API 비용**(GetMetricData 과금)
-- Prometheus scrape와 다른 별도 파이프라인 → in-cluster 구성의 단순함을 해침
+### 7-1. 파이프라인
+```
+Aurora(AWS/RDS) · ElastiCache(AWS/ElastiCache)
+   → CloudWatch
+   → YACE(period=300s 폴링)            # charts/monitoring-stack/templates/cloudwatch-exporter-yace.yaml
+   → Prometheus(ServiceMonitor scrape) # release 라벨로 자동 픽업
+   → Grafana(UID 고정 대시보드)         # gb-aws-rds / gb-aws-elasticache
+   → admin 콘솔 Monitoring 탭 iframe    # 자동 임베드
+```
 
-향후 DB 메트릭이 필요하면 **CloudWatch보다 `mysqld_exporter`(in-cluster, IAM 불필요)** 가 더 쉬운 대안.
-도입 시 별도 섹션으로 추가한다.
+### 7-2. 구성요소 (이 레포에 포함)
+- `templates/cloudwatch-exporter-yace.yaml` — ServiceAccount + ConfigMap(YACE config) + Deployment + Service + ServiceMonitor.
+- `templates/dashboards-aws.yaml` — 대시보드 2종(ConfigMap, `grafana_dashboard` 라벨 → 사이드카 자동 로드).
+  **UID 고정: `gb-aws-rds`, `gb-aws-elasticache`** → admin 임베드 URL이 배포 후 UID 추측 없이 바로 붙는다.
+- `values.yaml`의 `cloudwatchExporter:` 블록(이미지·region·period·roleArn 토글).
+
+### 7-3. AWS 사전조건 (★ Terraform/AWS 담당 — 코드 배포 전 필요)
+YACE는 Secret이 아니라 **IAM 읽기 권한**으로 동작한다. 아래 정책을 만든 역할을 SA에 연결한다.
+
+**IAM 정책(읽기 전용):**
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": [
+      "cloudwatch:GetMetricData",
+      "cloudwatch:GetMetricStatistics",
+      "cloudwatch:ListMetrics",
+      "tag:GetResources"
+    ],
+    "Resource": "*"
+  }]
+}
+```
+**SA 연결 — 둘 중 하나(우리 레포에 이미 두 패턴 다 있음):**
+- **IRSA**: 역할 ARN을 `values-stage.yaml`의 `cloudwatchExporter.serviceAccount.roleArn`에 넣으면
+  템플릿이 `eks.amazonaws.com/role-arn` 어노테이션을 주입(document 차트 방식).
+- **EKS Pod Identity**: `roleArn`을 비우고, Terraform이 `aws_eks_pod_identity_association`으로
+  SA(`cloudwatch-exporter`, ns `monitoring`)에 역할을 바인딩(community 차트 방식).
+
+> region은 `ap-northeast-2` 기본. Aurora/ElastiCache **식별자는 불필요** — YACE가 해당 region의
+> AWS/RDS·AWS/ElastiCache 리소스를 태그 API로 자동 발견한다. 특정 리소스만 보려면 config에 tag 필터 추가.
+
+### 7-4. 배포 (§8 helm 흐름 그대로)
+```bash
+cd gb-infra/charts/monitoring-stack
+helm upgrade monitoring-stack . -n monitoring     # cloudwatchExporter.enabled=true 가 기본
+```
+
+### 7-5. 검증
+```bash
+kubectl -n monitoring get pods | grep cloudwatch-exporter        # Running
+kubectl -n monitoring port-forward deploy/cloudwatch-exporter 5000:5000
+curl -s localhost:5000/metrics | grep -E 'aws_rds_|aws_elasticache_' | head   # 지표 노출 확인
+```
+- Prometheus Targets에 `cloudwatch-exporter` UP.
+- Grafana에서 `/d/gb-aws-rds`, `/d/gb-aws-elasticache` 패널에 값 표시.
+- admin 콘솔 Monitoring 탭에 "AWS RDS / Aurora", "AWS ElastiCache" iframe 자동 표시.
+
+> ⚠️ YACE 지표명이 비어 보이면: ① IAM 권한 ② region ③ 리소스 태그 순으로 확인. `period/length`보다
+> 촘촘한 해상도가 필요하면 `values.yaml`에서 낮추되 GetMetricData 호출(=요금)이 늘어난다.
 
 ## 8. 배포 — 수동 helm 설치 (interim) + Terraform 인계
 
@@ -183,7 +243,8 @@ kubectl -n monitoring get ingress                      # Grafana 내부 ALB 주�
     - JVM(Micrometer) = `0829a2c7-6bad-4fc7-97b9-badb9568c87e`
     - Spring(Java SpringBoot APM) = `X09JGT7Gz`
     - Redis(Prometheus Redis Exporter 1.x) = `e008bc3f-81a2-40f9-baf2-a33fd8dec7ec`
-    - AWS RDS = 제거(미도입)
+    - AWS RDS / Aurora(CloudWatch/YACE) = `gb-aws-rds` (우리 JSON에 고정 — §7)
+    - AWS ElastiCache(CloudWatch/YACE) = `gb-aws-elasticache` (우리 JSON에 고정 — §7)
 
 ### 8-4. 업그레이드 / 삭제 (참고)
 ```bash
@@ -213,21 +274,26 @@ resource "helm_release" "redis_exporter" {
 }
 
 # ServiceMonitor / 대시보드 = kubernetes_manifest 또는 helm values 내 inline
-# (RDS CloudWatch 도입 시) aws_iam_role(IRSA) + helm_release "cloudwatch-exporter"
+# YACE(CloudWatch) = aws_iam_role(IRSA) 또는 aws_eks_pod_identity_association + 위 §7 IAM 정책.
+#   YACE 자체는 monitoring-stack 차트에 포함(별도 helm_release 불필요) — IAM/바인딩만 Terraform 소관.
 ```
 
-- AWS 사전요소: ALB는 Ingress가 자동 생성. (RDS CloudWatch 도입 시에만) CloudWatch read IRSA 추가.
+- AWS 사전요소: ALB는 Ingress가 자동 생성. **YACE용 CloudWatch read 역할(§7-3 정책) + SA 바인딩**(IRSA roleArn
+  또는 Pod Identity association) 필요. region `ap-northeast-2`.
 
 ## 10. 검증 체크리스트 (배포 후)
 
-- [ ] `kubectl -n monitoring get pods` — prometheus/grafana/exporters Running
+- [ ] `kubectl -n monitoring get pods` — prometheus/grafana/exporters + cloudwatch-exporter Running
 - [ ] Grafana 내부 ALB 주소 브라우저 접근 → 익명 뷰어로 대시보드 열림
-- [ ] Prometheus Targets에 6서비스 + redis_exporter UP
-- [ ] 대시보드 UID 4종이 admin 콘솔 임베드 URL과 일치
-- [ ] admin 콘솔 Monitoring 탭에서 iframe 인라인 표시(빈 화면 아님)
-- [ ] admin 콘솔에서 AWS RDS 카드 사라짐
+- [ ] Prometheus Targets에 6서비스 + redis_exporter + cloudwatch-exporter UP
+- [ ] 대시보드 UID 6종(앱 4 + AWS 2)이 admin 콘솔 임베드 URL과 일치
+- [ ] `/d/gb-aws-rds`, `/d/gb-aws-elasticache` 패널에 CloudWatch 값 표시(빈 그래프 아님)
+- [ ] admin 콘솔 Monitoring 탭에서 iframe 자동 인라인 표시(클릭 없이)
 
 ---
 
 ### 변경 이력
 - v0.1 (작성) — 스코프 확정(in-cluster 4종, RDS CloudWatch 보류). 배포 후 실값으로 갱신 예정.
+- v0.2 — YACE(CloudWatch Exporter) 도입: Aurora/ElastiCache 지표 → Prometheus → Grafana(UID 고정
+  `gb-aws-rds`/`gb-aws-elasticache`) → admin 임베드 추가. §7 전면 개정(보류→도입). IAM 정책·IRSA/Pod Identity
+  바인딩이 AWS 측 사전조건.

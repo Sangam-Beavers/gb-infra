@@ -1,0 +1,52 @@
+{
+  "uid": "gb-aws-elasticache",
+  "title": "AWS ElastiCache (CloudWatch)",
+  "tags": ["gb", "aws", "elasticache", "redis"],
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "1m",
+  "time": { "from": "now-3h", "to": "now" },
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1, "type": "timeseries", "title": "CPU / Engine CPU (%)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "aws_elasticache_cpuutilization_average", "legendFormat": "cpu {{dimension_CacheClusterId}}" },
+        { "datasource": "Prometheus", "expr": "aws_elasticache_engine_cpuutilization_average", "legendFormat": "engine {{dimension_CacheClusterId}}" }
+      ]
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Memory Usage (%)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] },
+      "targets": [ { "datasource": "Prometheus", "expr": "aws_elasticache_database_memory_usage_percentage_average", "legendFormat": "{{dimension_CacheClusterId}}" } ]
+    },
+    {
+      "id": 3, "type": "timeseries", "title": "Cache Hit Rate (%)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 }, "overrides": [] },
+      "targets": [ { "datasource": "Prometheus", "expr": "100 * sum by (dimension_CacheClusterId) (aws_elasticache_cache_hits_sum) / clamp_min(sum by (dimension_CacheClusterId) (aws_elasticache_cache_hits_sum) + sum by (dimension_CacheClusterId) (aws_elasticache_cache_misses_sum), 1)", "legendFormat": "{{dimension_CacheClusterId}}" } ]
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Evictions (sum)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "targets": [ { "datasource": "Prometheus", "expr": "aws_elasticache_evictions_sum", "legendFormat": "{{dimension_CacheClusterId}}" } ]
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "Current Connections",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "targets": [ { "datasource": "Prometheus", "expr": "aws_elasticache_curr_connections_average", "legendFormat": "{{dimension_CacheClusterId}}" } ]
+    },
+    {
+      "id": 6, "type": "timeseries", "title": "Replication Lag (s)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "targets": [ { "datasource": "Prometheus", "expr": "aws_elasticache_replication_lag_average", "legendFormat": "{{dimension_CacheClusterId}}" } ]
+    }
+  ]
+}

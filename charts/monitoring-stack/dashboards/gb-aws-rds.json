@@ -1,0 +1,52 @@
+{
+  "uid": "gb-aws-rds",
+  "title": "AWS RDS / Aurora (CloudWatch)",
+  "tags": ["gb", "aws", "rds"],
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "1m",
+  "time": { "from": "now-3h", "to": "now" },
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1, "type": "timeseries", "title": "CPU Utilization (%)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "percent" }, "overrides": [] },
+      "targets": [ { "datasource": "Prometheus", "expr": "aws_rds_cpuutilization_average", "legendFormat": "{{dimension_DBInstanceIdentifier}}" } ]
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Database Connections",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "targets": [ { "datasource": "Prometheus", "expr": "aws_rds_database_connections_maximum", "legendFormat": "{{dimension_DBInstanceIdentifier}}" } ]
+    },
+    {
+      "id": 3, "type": "timeseries", "title": "Freeable Memory (bytes)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
+      "targets": [ { "datasource": "Prometheus", "expr": "aws_rds_freeable_memory_average", "legendFormat": "{{dimension_DBInstanceIdentifier}}" } ]
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Aurora Replica Lag (ms)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "ms" }, "overrides": [] },
+      "targets": [ { "datasource": "Prometheus", "expr": "aws_rds_aurora_replica_lag_average", "legendFormat": "{{dimension_DBInstanceIdentifier}}" } ]
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "Read / Write Latency (s)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "targets": [
+        { "datasource": "Prometheus", "expr": "aws_rds_read_latency_average", "legendFormat": "read {{dimension_DBInstanceIdentifier}}" },
+        { "datasource": "Prometheus", "expr": "aws_rds_write_latency_average", "legendFormat": "write {{dimension_DBInstanceIdentifier}}" }
+      ]
+    },
+    {
+      "id": 6, "type": "timeseries", "title": "Deadlocks (sum)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "targets": [ { "datasource": "Prometheus", "expr": "aws_rds_deadlocks_sum", "legendFormat": "{{dimension_DBInstanceIdentifier}}" } ]
+    }
+  ]
+}

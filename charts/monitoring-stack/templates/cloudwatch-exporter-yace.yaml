@@ -1,0 +1,167 @@
+{{- if .Values.cloudwatchExporter.enabled }}
+# YACE (Yet Another CloudWatch Exporter) — AWS CloudWatch 지표를 긁어 Prometheus 포맷으로 노출.
+# 대상: Aurora(AWS/RDS) + ElastiCache(AWS/ElastiCache). redis_exporter는 Redis 프로토콜 직긁기라
+# CloudWatch 측 지표(Evictions·ReplicationLag·CPUCreditBalance 등 매니지드 전용)는 여기서만 잡힌다.
+#
+# 인증: Secret 없음 — IAM(읽기 전용 cloudwatch:GetMetricData 등)으로 AWS SDK 기본 자격증명 체인 사용.
+#   ① IRSA  → serviceAccount.roleArn 지정 시 role-arn 어노테이션 주입(document 차트 패턴)
+#   ② Pod Identity → roleArn 비우고 Terraform이 SA 이름으로 association 바인딩(community 차트 패턴)
+# 둘 중 하나만 있으면 됨. 비용: 보는 사람 수와 무관하게 중앙 1회 폴링(period/length로 호출량 통제).
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.cloudwatchExporter.serviceAccount.name }}
+  namespace: {{ .Release.Namespace }}
+  {{- with .Values.cloudwatchExporter.serviceAccount.roleArn }}
+  annotations:
+    eks.amazonaws.com/role-arn: {{ . | quote }}
+  {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudwatch-exporter-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yaml: |
+    apiVersion: v1alpha1
+    sts-region: {{ .Values.cloudwatchExporter.region }}
+    discovery:
+      exportedTagsOnMetrics:
+        AWS/RDS:
+          - Name
+        AWS/ElastiCache:
+          - Name
+      jobs:
+        # ── Aurora / RDS ────────────────────────────────────────────
+        - type: AWS/RDS
+          regions:
+            - {{ .Values.cloudwatchExporter.region }}
+          period: {{ .Values.cloudwatchExporter.period }}
+          length: {{ .Values.cloudwatchExporter.length }}
+          metrics:
+            - name: CPUUtilization
+              statistics: [Average, Maximum]
+            - name: DatabaseConnections
+              statistics: [Average, Maximum]
+            - name: FreeableMemory
+              statistics: [Average, Minimum]
+            - name: FreeLocalStorage
+              statistics: [Average]
+            - name: ReadLatency
+              statistics: [Average, Maximum]
+            - name: WriteLatency
+              statistics: [Average, Maximum]
+            - name: ReadIOPS
+              statistics: [Average]
+            - name: WriteIOPS
+              statistics: [Average]
+            - name: AuroraReplicaLag
+              statistics: [Average, Maximum]
+            - name: Deadlocks
+              statistics: [Average, Sum]
+            - name: DiskQueueDepth
+              statistics: [Average]
+        # ── ElastiCache (Redis) ─────────────────────────────────────
+        - type: AWS/ElastiCache
+          regions:
+            - {{ .Values.cloudwatchExporter.region }}
+          period: {{ .Values.cloudwatchExporter.period }}
+          length: {{ .Values.cloudwatchExporter.length }}
+          metrics:
+            - name: CPUUtilization
+              statistics: [Average, Maximum]
+            - name: EngineCPUUtilization
+              statistics: [Average, Maximum]
+            - name: DatabaseMemoryUsagePercentage
+              statistics: [Average, Maximum]
+            - name: CacheHits
+              statistics: [Sum]
+            - name: CacheMisses
+              statistics: [Sum]
+            - name: Evictions
+              statistics: [Sum]
+            - name: CurrConnections
+              statistics: [Average, Maximum]
+            - name: NewConnections
+              statistics: [Sum]
+            - name: ReplicationLag
+              statistics: [Average, Maximum]
+            - name: DatabaseMemoryUsageCountedForEvictPercentage
+              statistics: [Average]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudwatch-exporter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: cloudwatch-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudwatch-exporter
+  template:
+    metadata:
+      labels:
+        app: cloudwatch-exporter
+      annotations:
+        # config 변경 시 롤링 재배포 트리거
+        checksum/config: {{ .Values.cloudwatchExporter | toYaml | sha256sum }}
+    spec:
+      serviceAccountName: {{ .Values.cloudwatchExporter.serviceAccount.name }}
+      containers:
+        - name: cloudwatch-exporter
+          image: {{ .Values.cloudwatchExporter.image }}
+          args:
+            - --config.file=/config/config.yaml
+            - --listen-address=0.0.0.0:5000
+          ports:
+            - name: metrics
+              containerPort: 5000
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits: { memory: 256Mi }
+      volumes:
+        - name: config
+          configMap:
+            name: cloudwatch-exporter-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloudwatch-exporter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: cloudwatch-exporter
+spec:
+  selector:
+    app: cloudwatch-exporter
+  ports:
+    - name: metrics
+      port: 5000
+      targetPort: metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cloudwatch-exporter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    release: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app: cloudwatch-exporter
+  endpoints:
+    - port: metrics
+      # YACE는 내부에서 이미 period 간격으로 CloudWatch를 긁으므로 스크레이프는 1분이면 충분.
+      interval: 60s
+      scrapeTimeout: 30s
+{{- end }}

@@ -1,5 +1,24 @@
 # monitoring-stack — kube-prometheus-stack 서브차트 설정.
 # 서브차트 값은 차트 이름 키(kube-prometheus-stack) 아래에 둔다.
+
+# ── CloudWatch Exporter (YACE) ──────────────────────────────────────
+# Aurora(AWS/RDS) + ElastiCache(AWS/ElastiCache) CloudWatch 지표를 Prometheus로.
+# 인증은 IAM(아래 serviceAccount.roleArn=IRSA, 또는 비우고 Pod Identity).
+cloudwatchExporter:
+  enabled: true
+  # 2026-06 기준. 업데이트 시 github.com/nerdswords/yet-another-cloudwatch-exporter 릴리스 확인.
+  image: ghcr.io/nerdswords/yet-another-cloudwatch-exporter:v0.61.2
+  region: ap-northeast-2
+  # CloudWatch GetMetricData 비용/해상도 트레이드오프. RDS/ElastiCache 기본 1분 지표 → 300s 권장(요금↓).
+  # 더 촘촘히 보려면 60으로 낮추되 API 호출량(=요금) 증가.
+  period: 300
+  length: 300
+  serviceAccount:
+    name: cloudwatch-exporter
+    # IRSA 사용 시 Terraform이 만든 역할 ARN을 넣는다(values-stage.yaml에서 override 권장).
+    # 비워두면 EKS Pod Identity로 바인딩되는 것으로 간주(어노테이션 미주입).
+    roleArn: ""
+
 kube-prometheus-stack:
 
   # ── Grafana (admin 콘솔 임베드가 핵심) ─────────────────────────────

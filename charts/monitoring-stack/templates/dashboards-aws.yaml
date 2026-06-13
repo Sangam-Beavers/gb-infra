@@ -1,0 +1,18 @@
+{{- if .Values.cloudwatchExporter.enabled }}
+# YACE 메트릭(aws_rds_*, aws_elasticache_*)을 보는 커스텀 Grafana 대시보드 2종.
+# UID 고정(gb-aws-rds / gb-aws-elasticache)해 admin-service 임베드 URL이 배포 후 UID 추측 없이 바로 붙는다.
+# grafana_dashboard 라벨이 붙은 ConfigMap을 사이드카가 자동 로드(values.yaml sidecar.dashboards).
+#
+# ⚠️ JSON 본문은 반드시 dashboards/*.json 파일로 두고 .Files 로 주입한다.
+#    Grafana 범례 문법 {{dimension_*}} 가 Helm 템플릿 엔진에 걸리면 안 되므로(템플릿 액션으로 오인),
+#    .Files 컨텐츠(=템플릿 미적용)로 읽어야 이중 중괄호가 리터럴로 보존된다.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gb-dashboards-aws
+  namespace: {{ .Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+data:
+{{ (.Files.Glob "dashboards/*.json").AsConfig | indent 2 }}
+{{- end }}
