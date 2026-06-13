@@ -18,3 +18,7 @@ data:
   SPRING_JPA_HIBERNATE_DDL_AUTO: {{ .Values.config.ddlAuto | quote }}
   MEMBER_API_BASE_URL: {{ .Values.config.memberApiBaseUrl | quote }}
   TRANSLATION_AWS_REGION: {{ .Values.config.translationAwsRegion | quote }}
+  # 번역 클라이언트 — 전 환경(dev/stage/prod) 무조건 실제 Bedrock 호출.
+  # (로컬 노트북 직접 실행은 이 ConfigMap을 안 쓰므로 application-dev.yml 기본값 mock 유지 — 클러스터 배포만 bedrock.)
+  # 클러스터 파드는 Pod Identity/IRSA 자격으로 Lambda를 호출하므로 자격 조회 OK.
+  TRANSLATION_CLIENT: "bedrock"
