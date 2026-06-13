@@ -32,6 +32,8 @@ config:
   walletInternalUrl: "http://wallet.sb-stage-app-ns.svc.cluster.local:8084"
   grafanaBaseUrl: "http://internal-k8s-monitori-monitori-c176229a39-1932184299.ap-northeast-2.elb.amazonaws.com"
   argocdBaseUrl: "https://argocd.sb.fisa"   # ArgoCD는 iframe 차단 → "새 창에서 열기"용 링크
+  # 인프라 경보용 Prometheus instant query (monitoring NS 크로스 호출). 미설정이면 infra-alerts는 빈 목록(fail-soft).
+  prometheusBaseUrl: "http://monitoring-stack-kube-prom-prometheus.monitoring.svc.cluster.local:9090"
 
 # DB 시크릿(admin 전용) — 팀원이 Terraform으로 생성: 스키마 svc_admin / 유저 admin_svc
 externalSecret:

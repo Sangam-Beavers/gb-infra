@@ -16,3 +16,5 @@ data:
   # Grafana/ArgoCD 대시보드 임베드 base URL (프론트가 임베드 링크 생성에 사용)
   GRAFANA_BASE_URL: {{ .Values.config.grafanaBaseUrl | quote }}
   ARGOCD_BASE_URL: {{ .Values.config.argocdBaseUrl | quote }}
+  # 인프라 경보용 Prometheus instant query base-url (admin-service infra-alerts)
+  PROMETHEUS_BASE_URL: {{ .Values.config.prometheusBaseUrl | quote }}
