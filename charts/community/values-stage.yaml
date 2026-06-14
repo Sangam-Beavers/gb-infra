@@ -5,7 +5,7 @@ springProfilesActive: stage
 
 image:
   repository: harbor.sb.fisa/global_bridge/community
-  tag: "16"
+  tag: "18"
   pullPolicy: IfNotPresent
 
 replicaCount: 2
