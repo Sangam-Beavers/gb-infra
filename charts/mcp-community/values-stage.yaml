@@ -17,3 +17,19 @@ externalSecret:
   # COMMUNITY_DB_* 환경변수로 리매핑(externalsecret-aws.yaml).
   # TODO(운영 전환): SELECT 전용 mcp_reader 계정 + sb/stage/community/mcp-reader로 분리.
   smDbPath: sb/stage/community/db
+
+# 챗봇 Lambda(계정 B)가 사설로 MCP에 도달하도록 internal NLB로 노출.
+# dev(values.yaml)는 ClusterIP 유지 — 외부 노출 안 함. 결정 근거: mcp-chatbot-connectivity.md.
+# monitoring ingress와 동일한 AWS Load Balancer Controller 기준 어노테이션.
+# port/containerPort는 values.yaml(8000)을 그대로 상속, type만 override + annotations 추가.
+service:
+  type: LoadBalancer
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internal"
+    service.beta.kubernetes.io/aws-load-balancer-name: "sb-stage-mcp-community"
+    # stage app 프라이빗 서브넷 (sb-stage-private-a / -c)
+    service.beta.kubernetes.io/aws-load-balancer-subnets: "subnet-0d325a62956a57f00,subnet-07d879ed6d4126277"
+    # 챗봇 Lambda(hub VPC) 서브넷 CIDR로 인바운드 제한 — 사설이라도 최소권한
+    service.beta.kubernetes.io/aws-load-balancer-source-ranges: "10.110.43.0/24,10.110.41.0/24"
