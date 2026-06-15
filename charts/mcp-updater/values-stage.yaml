@@ -5,7 +5,7 @@ namespace: sb-stage-app-ns
 
 image:
   repository: harbor.sb.fisa/global_bridge/exchange-updater
-  tag: "7"
+  tag: "8"
   pullPolicy: IfNotPresent
 
 # UTC 15:00 = KST 00:00 (자정)
