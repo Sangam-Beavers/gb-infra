@@ -21,7 +21,7 @@ service:
 config:
   ddlAuto: "update"
   memberInternalUrl: "http://member.sb-stage-app-ns.svc.cluster.local:8081"
-  communityInternalUrl: "http://community.sb-stage-app-ns.svc.cluster.local:8082"
+  communityInternalUrl: "http://community.sb-stage-app-ns.svc.cluster.local:8080"
 
 externalSecret:
   refreshInterval: 1h

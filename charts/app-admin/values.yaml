@@ -31,7 +31,7 @@ secretBackend: vault
 config:
   authIssuerUri: "https://sso.sb.fisa/application/o/gb-backend/"          # TODO 확인
   memberInternalUrl: "http://member.member-dev.svc.cluster.local:8081"    # TODO member 배포 시
-  communityInternalUrl: "http://community.community-dev.svc.cluster.local:8082"  # TODO community 배포 시
+  communityInternalUrl: "http://community.community-dev.svc.cluster.local:8080"  # TODO community 배포 시
   dbHost: "mysql-lb.gb-dev.svc.cluster.local"
   dbPort: "3306"
   dbName: "admin_db"
