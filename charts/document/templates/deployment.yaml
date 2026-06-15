@@ -14,7 +14,7 @@ spec:
       labels:
         app: document
     spec:
-      {{- if and .Values.serviceAccount.create .Values.serviceAccount.roleArn }}
+      {{- if .Values.serviceAccount.create }}
       serviceAccountName: {{ .Values.serviceAccount.name }}
       {{- end }}
       imagePullSecrets:

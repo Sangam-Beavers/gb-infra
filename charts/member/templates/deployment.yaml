@@ -15,7 +15,7 @@ spec:
         app: member
     spec:
       {{- if eq .Values.secretBackend "aws" }}
-      # stage: Cognito 관리 IRSA SA (install-k8s-stack이 생성·annotate). dev(vault)는 default SA.
+      # stage: Cognito 관리 권한을 Pod Identity로 받는 SA (이 차트 serviceaccount.yaml이 생성, Terraform이 association 바인딩). dev(vault)는 default SA.
       serviceAccountName: member
       {{- end }}
       securityContext:

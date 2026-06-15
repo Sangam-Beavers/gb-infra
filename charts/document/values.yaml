@@ -21,7 +21,6 @@ secretBackend: vault
 serviceAccount:
   create: false
   name: ""
-  roleArn: ""
 # 평범한 설정값 (ConfigMap으로 주입)
 config:
   authIssuerUri: "https://sso.sb.fisa/application/o/gb-backend/"
