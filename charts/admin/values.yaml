@@ -44,9 +44,32 @@ externalSecret:
   vaultPath: "admin-service/dev"
 
 resources:
+  # m7g.large(2vCPU/8Gi) 표준 JVM 서비스 — 메모리 request=limit(Guaranteed)
   requests:
-    memory: 512Mi
-    cpu: 250m
+    cpu: 150m
+    memory: 640Mi
   limits:
-    memory: 1Gi
-    cpu: 500m
+    cpu: 750m
+    memory: 640Mi
+
+# ── 리비전 / 오토스케일링 (전 차트 공통) ───────────────────────────
+# Deployment 리비전(ReplicaSet) 보관 개수 — 롤백 이력 3개까지만 유지
+revisionHistoryLimit: 3
+
+# HPA 오토스케일링 — 최소 3 Pod, 부하 시 최대 9 Pod까지 자동 확장
+# CPU 평균 사용률 기준이라 컨테이너에 resources.requests.cpu 가 반드시 있어야 동작한다.
+# (ArgoCD 환경: autoscaling.enabled=true 면 Deployment의 replicas 필드를 비워 HPA가 소유하게 한다)
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 9
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80   # 메모리 기준도 함께 쓰려면 주석 해제
+
+# Pod 분산 배치 — 같은 노드에 replica가 몰리지 않게 노드(hostname) 단위로 고르게 스케줄 (HA)
+topologySpread:
+  enabled: true
+  maxSkew: 1
+  # ScheduleAnyway: 노드가 부족해도 Pending 없이 best-effort 분산 (HPA/오토스케일 환경 권장)
+  # DoNotSchedule: 균등 분산을 강제 — 노드 부족 시 Pending → cluster-autoscaler 가 노드 증설을 유도
+  whenUnsatisfiable: ScheduleAnyway

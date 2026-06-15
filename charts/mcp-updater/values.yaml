@@ -13,6 +13,10 @@ schedule: "0 15 * * *"
 successfulJobsHistoryLimit: 3
 failedJobsHistoryLimit: 3
 
+# 완료(성공/실패)된 Job 과 그 Pod 를 종료 후 N초 뒤 자동 삭제 → 완료된 Pod 가 남지 않게 정리.
+# 600 = 10분 (로그 확인 여유 후 자동 삭제). 실패 Pod 도 함께 삭제되므로 더 오래 보려면 값을 키운다.
+ttlSecondsAfterFinished: 600
+
 # 비밀 백엔드 — dev=vault, stage=aws (values-stage.yaml에서 override)
 secretBackend: vault
 

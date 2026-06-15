@@ -11,6 +11,10 @@ spec:
   failedJobsHistoryLimit: {{ .Values.failedJobsHistoryLimit }}
   jobTemplate:
     spec:
+      # 완료(성공/실패)된 Job 과 그 Pod 를 N초 뒤 자동 삭제 → 완료된 Pod 가 쌓이지 않음
+      {{- with .Values.ttlSecondsAfterFinished }}
+      ttlSecondsAfterFinished: {{ . }}
+      {{- end }}
       # 실패 시 최대 2회 재시도 후 포기
       backoffLimit: 2
       template:
