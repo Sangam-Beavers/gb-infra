@@ -39,4 +39,3 @@ config:
 externalSecret:
   refreshInterval: 1h
   smDbPath: sb/stage/admin/db
-  psAuthIssuerUri: /sb/stage/member/AUTH_ISSUER_URI     # member와 동일 값 — 공용 Cognito issuer (검표원 + admin 그룹 인가)
