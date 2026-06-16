@@ -55,9 +55,13 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
+          # NOTE(2026-06-16): liveness는 의존성(DB/Kafka/SQS) 제외한 Spring liveness 그룹 사용
+          #   → 의존성 블립으로 컨테이너가 죽는 크래시루프 방지(document HPA 폭주 원인과 동일 패턴).
+          # ⚠️ 적용 전 확인: 앱이 /actuator/health/liveness 노출하는지
+          #   (management.endpoint.health.probes.enabled=true). member/wallet은 이미 사용 중.
           livenessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/liveness
               port: http
             initialDelaySeconds: 60
             periodSeconds: 30

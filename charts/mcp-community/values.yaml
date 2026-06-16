@@ -50,6 +50,30 @@ autoscaling:
   maxReplicas: 9
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80   # 메모리 기준도 함께 쓰려면 주석 해제
+  # ── HPA 스케일링 동작(behavior) — 기동/GC 일시 CPU 스파이크 과민반응 방지 (2026-06-16) ──
+  # scaleUp: 180s 안정화 창 → 지속 부하만 증설(순간 스파이크 무시), 1분당 최대 +2 pod 또는 +50%
+  # scaleDown: 300s 안정화 후 천천히 회수 → 크래시루프發 max 폭주(document 사례) 차단
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 180
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 120
+        - type: Percent
+          value: 25
+          periodSeconds: 120
+      selectPolicy: Max
 
 # Pod 분산 배치 — 같은 노드에 replica가 몰리지 않게 노드(hostname) 단위로 고르게 스케줄 (HA)
 topologySpread:
