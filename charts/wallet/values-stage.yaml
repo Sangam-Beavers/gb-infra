@@ -7,7 +7,7 @@ springProfilesActive: stage
 
 image:
   repository: harbor.sb.fisa/global_bridge/wallet
-  tag: "37"
+  tag: "38"
   pullPolicy: IfNotPresent
 
 replicaCount: 2
