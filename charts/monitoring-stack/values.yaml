@@ -42,6 +42,9 @@ kube-prometheus-stack:
         alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
         # 어드민 콘솔(monitoring) 인그레스와 동일 — 회사망이 닿는 관리 서브넷 + 인바운드 CIDR 지정.
         # 이게 없으면 기본 서브넷에 ALB가 떠서 사내 브라우저에서 접근 불가(ERR_CONNECTION_TIMED_OUT).
+        # ⚠️ 노드 풀은 3-AZ(a/b/c)인데 ALB를 a/c만으로 두면, 2b 노드에 뜬 Grafana 파드가
+        #    target-type:ip 에서 "Target.NotInUse (AZ not enabled)" → 타깃 0개 → 임베드 전부 503이 된다.
+        #    mgmt 서브넷은 a/b/c 모두 존재하므로 b까지 포함해 ALB를 3-AZ로 맞춘다(파드가 어느 AZ에 떠도 healthy).
         alb.ingress.kubernetes.io/subnets: sb-stage-mgmt-a,sb-stage-mgmt-b,sb-stage-mgmt-c
         alb.ingress.kubernetes.io/inbound-cidrs: 10.10.0.0/24,10.10.1.0/24
         alb.ingress.kubernetes.io/healthcheck-path: /
@@ -70,16 +73,15 @@ kube-prometheus-stack:
             editable: true
             options:
               path: /var/lib/grafana/dashboards/gb-default
+    # ⚠️ JVM·Spring Boot APM 임베드 대시보드는 gnet 자동 import를 쓰지 않는다.
+    # gnet import는 (재)배포마다 UID가 바뀌어 admin-service 임베드 URL(고정 UID)과 어긋나 "Not found"가 난다.
+    # → RDS/ElastiCache와 동일하게 dashboards/*.json 으로 UID를 고정해 사이드카(grafana_dashboard ConfigMap)가 로드:
+    #     JVM         = dashboards/gb-jvm-micrometer.json (uid 751f8ea6-...)
+    #     Spring Boot = dashboards/gb-springboot-apm.json  (uid X09JGT7Gz)
+    #   UID가 admin yaml 임베드 경로와 같아 admin-service 무변경. (이전 jvm-micrometer/spring-boot-statistics gnet 항목 제거)
+    # Redis는 임베드 대상이 아니라 UID 드리프트가 무관하므로 gnet 자동 import 유지.
     dashboards:
       gb-default:
-        jvm-micrometer:
-          gnetId: 4701          # JVM (Micrometer)
-          revision: 10
-          datasource: Prometheus
-        spring-boot-statistics:
-          gnetId: 12900         # Spring Boot 2.1 Statistics
-          revision: 1
-          datasource: Prometheus
         redis:
           gnetId: 763           # Redis Dashboard for Prometheus Redis Exporter
           revision: 6
