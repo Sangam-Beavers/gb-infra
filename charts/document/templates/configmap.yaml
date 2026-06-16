@@ -12,6 +12,8 @@ data:
   {{- end }}
 
   # 공통(dev/stage) — 비밀 아닌 평범한 참조값
+  # K8s probe 그룹(/actuator/health/{liveness,readiness}) 노출 — liveness가 외부 의존성에 안 묶이게
+  MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED: "true"
   MEMBER_API_BASE_URL: {{ .Values.config.memberApiBaseUrl | quote }}
 
   {{- if eq .Values.secretBackend "aws" }}
