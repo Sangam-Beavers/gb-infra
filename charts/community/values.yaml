@@ -1,7 +1,7 @@
 # 컨테이너 이미지
 image:
   repository: harbor.sb.fisa/global_bridge/community
-  tag: "23"
+  tag: "25"
   pullPolicy: IfNotPresent
 
 # Pod 개수
