@@ -29,7 +29,7 @@ service:
     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
     service.beta.kubernetes.io/aws-load-balancer-scheme: "internal"
     service.beta.kubernetes.io/aws-load-balancer-name: "sb-stage-mcp-community"
-    # stage app 프라이빗 서브넷 (sb-stage-private-a / -c)
-    service.beta.kubernetes.io/aws-load-balancer-subnets: "subnet-0d325a62956a57f00,subnet-07d879ed6d4126277"
+    # stage app 프라이빗 서브넷 (sb-stage-private-a / -b / -c) — Name 태그로 참조 (ID 하드코딩·2-AZ 누락 방지)
+    service.beta.kubernetes.io/aws-load-balancer-subnets: "sb-stage-private-a,sb-stage-private-b,sb-stage-private-c"
     # 챗봇 Lambda(hub VPC) 서브넷 CIDR로 인바운드 제한 — 사설이라도 최소권한
     service.beta.kubernetes.io/aws-load-balancer-source-ranges: "10.110.43.0/24,10.110.41.0/24"
