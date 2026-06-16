@@ -55,6 +55,7 @@ autoscaling:
 topologySpread:
   enabled: true
   maxSkew: 1
-  # ScheduleAnyway: 노드가 부족해도 Pending 없이 best-effort 분산 (HPA/오토스케일 환경 권장)
-  # DoNotSchedule: 균등 분산을 강제 — 노드 부족 시 Pending → cluster-autoscaler 가 노드 증설을 유도
-  whenUnsatisfiable: ScheduleAnyway
+  # DoNotSchedule: 균등 분산 강제 — 노드 부족 시 Pending → cluster-autoscaler 가 노드 증설 (2026-06-16 CA 도입으로 채택).
+  # matchLabelKeys=pod-template-hash 라 롤아웃·scale-up 시 같은 리비전끼리만 분산을 계산해 새 파드가 막히지 않습니다.
+  # ScheduleAnyway: best-effort 분산 (Pending 없음) — CA 없던 시절 기본값.
+  whenUnsatisfiable: DoNotSchedule
