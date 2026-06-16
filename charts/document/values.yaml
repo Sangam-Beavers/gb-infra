@@ -1,7 +1,7 @@
 # 컨테이너 이미지
 image:
   repository: harbor.sb.fisa/global_bridge/document
-  tag: "10"
+  tag: "11"
   pullPolicy: IfNotPresent
 # Pod 개수
 replicaCount: 1
