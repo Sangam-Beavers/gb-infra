@@ -5,7 +5,7 @@ springProfilesActive: stage
 
 image:
   repository: harbor.sb.fisa/global_bridge/document
-  tag: "32"
+  tag: "33"
   pullPolicy: IfNotPresent
 
 replicaCount: 2
