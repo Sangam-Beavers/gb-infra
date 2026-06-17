@@ -59,13 +59,16 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
+          # NOTE(2026-06-17): CPU 포화로 liveness 응답이 늦으면 kubelet이 죽음으로 오판→kill→크래시루프 캐스케이드.
+          #   → timeoutSeconds 10·failureThreshold 6 으로 둔감화(kill까지 grace ~180s, 부하테스트 근거).
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
               port: http
             initialDelaySeconds: 60
             periodSeconds: 30
-            timeoutSeconds: 5
+            timeoutSeconds: 10
+            failureThreshold: 6
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           securityContext:

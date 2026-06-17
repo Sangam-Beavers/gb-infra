@@ -37,12 +37,12 @@ externalSecret:
 
 # 리소스 요청/제한 — HPA(CPU 사용률 기준)가 동작하려면 requests.cpu 가 필요
 resources:
-  # m7g.large(2vCPU/8Gi) 표준 JVM 서비스 — 메모리 request=limit(Guaranteed)
+  # m7g.xlarge(4vCPU/16Gi) 표준 JVM 서비스 — 메모리 request=limit(Guaranteed)
   requests:
-    cpu: 150m
+    cpu: 500m
     memory: 640Mi
   limits:
-    cpu: 750m
+    cpu: 1000m
     memory: 640Mi
 
 # ── 리비전 / 오토스케일링 (전 차트 공통) ───────────────────────────

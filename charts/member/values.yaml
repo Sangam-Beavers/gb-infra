@@ -32,12 +32,12 @@ config:
   ddlAuto: "update"
 # 컨테이너 리소스 (requests/limits) — env별 override 가능
 resources:
-  # m7g.large(2vCPU/8Gi, ARM64) 코어 JVM 서비스 — 메모리 request=limit(Guaranteed)로 노드 OOM 방지, CPU만 burst
+  # m7g.xlarge(4vCPU/16Gi, ARM64) 코어 JVM 서비스 — 메모리 request=limit(Guaranteed)로 노드 OOM 방지, CPU만 burst
   requests:
-    cpu: 250m
+    cpu: 600m
     memory: 1Gi
   limits:
-    cpu: 1000m      # 노드 2코어 중 최대 1코어까지 burst
+    cpu: 1500m      # m7g.xlarge 4코어 중 최대 1.5코어까지 burst
     memory: 1Gi
 # Vault에서 가져올 비밀값 경로
 externalSecret:
